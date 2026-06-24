@@ -319,7 +319,7 @@
     scrim.hidden = false; sheet.hidden = false;
     requestAnimationFrame(() => { scrim.classList.add("in"); sheet.classList.add("in"); sheet.setAttribute("tabindex", "-1"); sheet.focus({ preventScroll: true }); });
   }
-  const ctaLink = (href, label) => `<a class="cta" href="${esc(href)}" target="_blank" rel="noopener">${esc(label)}<i class="arr">↗</i></a>`;
+  const ctaLink = (href, label) => `<a class="cta" href="${esc(href)}" target="_blank" rel="noopener"><span class="cta-label">${esc(label)}</span><span class="cta-icon" aria-hidden="true">↗</span></a>`;
 
   function closeSheet() {
     const sheet = $("#sheet"), scrim = $("#scrim");
