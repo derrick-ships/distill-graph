@@ -184,6 +184,7 @@ a { color: inherit; }
 .edge {
   stroke: var(--white);
   fill: none;
+  stroke-opacity: 0.12; /* safe default so any future/unknown edge type stays subtle */
   vector-effect: non-scaling-stroke;
   transition: stroke-opacity 0.3s ease;
 }
