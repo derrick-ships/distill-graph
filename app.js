@@ -1,8 +1,8 @@
 /* ============================================================
-   DISTILL ▲ GRAPH — star-map engine v2
-   Spectral star color by source repo · named constellations ·
-   directional dependency arrows · animated zoom · domain context.
-   Vanilla + D3 v7, no build step.
+   DISTILL ▲ GRAPH — star-map engine v3
+   Precision-instrument rendering: crisp stars with bright cores,
+   tight sparing glow, soft-shadowed labels, delicate linework,
+   dependency arrows only on the focused node.
    ============================================================ */
 (function () {
   "use strict";
@@ -11,15 +11,15 @@
   const REDUCE = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const EASE = d3.easeExpOut;
 
-  // naturalistic stellar palette (low chroma = tinted-white stars, not rainbow)
+  // refined stellar palette: near-white stars with a whisper of temperature
   const SPECTRAL = [
-    "oklch(0.88 0.065 254)", // blue-white
-    "oklch(0.93 0.05 200)",  // cyan-white
-    "oklch(0.97 0.012 250)", // white
-    "oklch(0.93 0.055 95)",  // yellow-white
-    "oklch(0.9 0.085 80)",   // yellow
-    "oklch(0.85 0.095 58)",  // amber
-    "oklch(0.81 0.1 38)"     // orange
+    "oklch(0.90 0.045 250)", // cool blue-white
+    "oklch(0.94 0.030 205)", // pale cyan
+    "oklch(0.97 0.010 250)", // white
+    "oklch(0.95 0.035 95)",  // warm white
+    "oklch(0.93 0.050 72)",  // pale gold
+    "oklch(0.90 0.060 52)",  // soft amber
+    "oklch(0.88 0.065 34)"   // muted coral
   ];
 
   let nodes, edges, byId, degree, neighbors, domains, repos, repoColor;
@@ -27,7 +27,7 @@
   let svg, defs, gDust, gZoom, gLink, gConst, gNode, zoom, sim;
   let linkSel, nodeSel, constSel;
   let selected = null, activeDomain = null, currentView = "map";
-  let currentK = 1, settled = false;
+  let currentK = 1;
   let width = window.innerWidth, height = window.innerHeight;
   let hintTimer;
 
@@ -43,7 +43,6 @@
     if (l) l.querySelector(".loader-sub").textContent = "Could not load graph data";
   }
 
-  // =====================================================
   function init(data, dd) {
     domainDesc = dd || {};
     const ids = new Set(data.nodes.map((n) => n.id));
@@ -81,7 +80,7 @@
     repos.forEach((r, i) => (repoColor[r] = SPECTRAL[i % SPECTRAL.length]));
 
     labelRest = new Set(
-      nodes.slice().sort((a, b) => degree[b.id] - degree[a.id]).slice(0, 7).map((n) => n.id)
+      nodes.slice().sort((a, b) => degree[b.id] - degree[a.id]).slice(0, 5).map((n) => n.id)
     );
 
     const sub = $(".loader-sub");
@@ -95,7 +94,7 @@
     runReveal();
   }
 
-  const radius = (d) => 2.8 + Math.sqrt(degree[d.id]) * 2.1;
+  const radius = (d) => 2.9 + Math.sqrt(degree[d.id]) * 2.0;
   const linkStrength = (t) =>
     t === "same-repo" ? 0.3 : t === "depends-on" ? 0.24 : t === "same-domain" ? 0.14 : t === "alternative-to" ? 0.08 : 0.05;
 
@@ -110,17 +109,16 @@
     return a;
   }
 
-  // =====================================================
   function buildSky() {
     svg = d3.select("#sky").attr("viewBox", [0, 0, width, height]);
     svg.selectAll("*").remove();
 
     defs = svg.append("defs");
-    const glow = defs.append("filter").attr("id", "glow").attr("x", "-120%").attr("y", "-120%").attr("width", "340%").attr("height", "340%");
-    glow.append("feGaussianBlur").attr("stdDeviation", 3.4);
-    const arrow = defs.append("marker").attr("id", "arrow").attr("viewBox", "0 -5 10 10")
-      .attr("refX", 9).attr("refY", 0).attr("markerWidth", 5.5).attr("markerHeight", 5.5).attr("orient", "auto");
-    arrow.append("path").attr("class", "arrowhead").attr("d", "M0,-4L9,0L0,4");
+    const glow = defs.append("filter").attr("id", "glow").attr("x", "-90%").attr("y", "-90%").attr("width", "280%").attr("height", "280%");
+    glow.append("feGaussianBlur").attr("stdDeviation", 1.5);
+    const arrow = defs.append("marker").attr("id", "arrow").attr("viewBox", "0 -4 8 8")
+      .attr("refX", 7).attr("refY", 0).attr("markerWidth", 4.6).attr("markerHeight", 4.6).attr("orient", "auto");
+    arrow.append("path").attr("class", "arrowhead").attr("d", "M0,-3L7,0L0,3");
 
     gDust = svg.append("g").attr("class", "dust");
     gZoom = svg.append("g");
@@ -133,19 +131,16 @@
     const anchors = domainAnchors();
     sim = d3.forceSimulation(nodes)
       .force("link", d3.forceLink(edges).id((d) => d.id)
-        .distance((e) => (e.type === "same-repo" ? 40 : 64))
+        .distance((e) => (e.type === "same-repo" ? 42 : 66))
         .strength((e) => linkStrength(e.type)))
-      .force("charge", d3.forceManyBody().strength(-95))
+      .force("charge", d3.forceManyBody().strength(-100))
       .force("x", d3.forceX((d) => anchors[d.domain].x).strength(0.16))
       .force("y", d3.forceY((d) => anchors[d.domain].y).strength(0.16))
-      .force("collide", d3.forceCollide().radius((d) => radius(d) + 8))
+      .force("collide", d3.forceCollide().radius((d) => radius(d) + 9))
       .alpha(1).alphaDecay(0.03);
 
-    linkSel = gLink.selectAll("line").data(edges).join("line")
-      .attr("class", (e) => "edge " + e.type)
-      .attr("marker-end", (e) => (e.type === "depends-on" ? "url(#arrow)" : null));
+    linkSel = gLink.selectAll("line").data(edges).join("line").attr("class", (e) => "edge " + e.type);
 
-    // constellation labels (domains with >=2 nodes)
     constSel = gConst.selectAll("text").data(domains.filter((d) => domainNodes[d].length >= 2)).join("text")
       .attr("class", "constellation").text((d) => d.replace(/-/g, " "));
 
@@ -155,16 +150,16 @@
       .on("click", (e, d) => { e.stopPropagation(); selectNode(d, true); })
       .on("keydown", (e, d) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); selectNode(d, true); } });
 
-    nodeSel.append("circle").attr("class", "halo").attr("r", (d) => radius(d) * 2.4)
+    nodeSel.append("circle").attr("class", "halo").attr("r", (d) => radius(d) * 1.7)
       .attr("filter", "url(#glow)").style("fill", (d) => repoColor[d.repo]);
     nodeSel.append("circle").attr("class", "star").attr("r", radius).style("fill", (d) => repoColor[d.repo]);
+    nodeSel.append("circle").attr("class", "core").attr("r", (d) => Math.max(1.05, radius(d) * 0.4));
     nodeSel.append("circle").attr("class", "hit").attr("r", (d) => Math.max(radius(d) + 13, 22));
-    nodeSel.append("text").attr("class", "label").attr("dy", (d) => radius(d) + 13).text((d) => d.label);
+    nodeSel.append("text").attr("class", "label").attr("dy", (d) => radius(d) + 12).text((d) => d.label);
 
     nodeSel.classed("show-label", (d) => labelRest.has(d.id));
 
     sim.on("tick", ticked);
-    sim.on("end", () => { settled = true; });
 
     zoom = d3.zoom().scaleExtent([0.4, 7]).on("zoom", (e) => {
       gZoom.attr("transform", e.transform);
@@ -172,10 +167,7 @@
       dismissHint();
     });
     svg.call(zoom).on("dblclick.zoom", null);
-    svg.on("dblclick", (e) => {
-      const p = d3.pointer(e);
-      svg.transition().duration(420).ease(EASE).call(zoom.scaleBy, 1.7, p);
-    });
+    svg.on("dblclick", (e) => svg.transition().duration(420).ease(EASE).call(zoom.scaleBy, 1.7, d3.pointer(e)));
     svg.on("click", (e) => { if (e.target.closest && e.target.closest(".node")) return; clearSelection(); });
   }
 
@@ -185,7 +177,7 @@
       let dx = tx - sx, dy = ty - sy, L = Math.hypot(dx, dy) || 1;
       const ux = dx / L, uy = dy / L;
       const rS = radius(d.source) + 2;
-      const rT = radius(d.target) + (d.type === "depends-on" ? 7 : 2);
+      const rT = radius(d.target) + (d.type === "depends-on" ? 6 : 2);
       this.setAttribute("x1", sx + ux * rS); this.setAttribute("y1", sy + uy * rS);
       this.setAttribute("x2", tx - ux * rT); this.setAttribute("y2", ty - uy * rT);
     });
@@ -193,18 +185,18 @@
     constSel.attr("x", (d) => {
       const ns = domainNodes[d]; let sx = 0; ns.forEach((n) => (sx += n.x)); return sx / ns.length;
     }).attr("y", (d) => {
-      const ns = domainNodes[d]; let my = Infinity; ns.forEach((n) => (my = Math.min(my, n.y - radius(n)))); return my - 14;
+      const ns = domainNodes[d]; let my = Infinity; ns.forEach((n) => (my = Math.min(my, n.y - radius(n)))); return my - 16;
     });
   }
 
   function drawDust() {
     gDust.selectAll("*").remove();
-    let n = Math.round((width * height) / 6500);
-    n = Math.max(70, Math.min(n, 240));
+    let n = Math.round((width * height) / 6800);
+    n = Math.max(70, Math.min(n, 230));
     const data = [];
     for (let i = 0; i < n; i++) data.push({
       x: Math.random() * width, y: Math.random() * height,
-      r: 0.3 + Math.random() * 1.1, o: 0.08 + Math.random() * 0.4, d: (Math.random() * 6).toFixed(2)
+      r: 0.3 + Math.random() * 1.0, o: 0.06 + Math.random() * 0.34, d: (Math.random() * 6).toFixed(2)
     });
     gDust.selectAll("circle").data(data).join("circle")
       .attr("cx", (d) => d.x).attr("cy", (d) => d.y).attr("r", (d) => d.r)
@@ -212,7 +204,6 @@
       .style("animation", REDUCE ? null : (d) => `twinkle ${(3 + Math.random() * 4).toFixed(1)}s ease-in-out ${d.d}s infinite`);
   }
 
-  // =====================================================
   function applyHighlight() {
     if (selected) {
       const nb = neighbors.get(selected.id);
@@ -231,17 +222,23 @@
       nodeSel.classed("selected", false).classed("lit", false).classed("dim", false);
       linkSel.classed("lit", false).classed("dim", false);
     }
+    // dependency arrows appear only on the focused node's depends-on edges
+    linkSel.each(function (e) {
+      if (e.type === "depends-on" && this.classList.contains("lit")) this.setAttribute("marker-end", "url(#arrow)");
+      else this.removeAttribute("marker-end");
+    });
     refreshLabels();
   }
 
   function refreshLabels() {
-    const zoomedIn = currentK > 1.4;
-    nodeSel.classed("show-label", (d) => labelRest.has(d.id) || zoomedIn || (selected && (d.id === selected.id || neighbors.get(selected.id).has(d.id))));
-    const showConst = currentK <= 1.25 && !selected;
+    const zoomedIn = currentK > 1.3;
+    nodeSel.classed("show-label", (d) =>
+      labelRest.has(d.id) || zoomedIn || (selected && (d.id === selected.id || neighbors.get(selected.id).has(d.id))));
+    const showConst = currentK < 0.98 && !selected && !activeDomain;
     constSel
       .classed("active", (d) => d === activeDomain)
-      .classed("shown", (d) => showConst && d !== activeDomain && !(activeDomain))
-      .classed("muted", (d) => (activeDomain && d !== activeDomain) || (!showConst && d !== activeDomain && !!selected));
+      .classed("shown", (d) => showConst)
+      .classed("muted", (d) => !!activeDomain && d !== activeDomain);
   }
 
   function selectNode(d, openSheetToo) {
@@ -274,7 +271,7 @@
 
   function centerOn(d) {
     if (!zoom || d.x == null) return;
-    const t = d3.zoomIdentity.translate(width / 2, height / 2).scale(1.7).translate(-d.x, -d.y);
+    const t = d3.zoomIdentity.translate(width / 2, height / 2).scale(1.8).translate(-d.x, -d.y);
     svg.transition().duration(REDUCE ? 0 : 640).ease(EASE).call(zoom.transform, t);
   }
 
@@ -283,13 +280,12 @@
     const xs = nodes.map((n) => n.x), ys = nodes.map((n) => n.y);
     const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
     const w = Math.max(maxX - minX, 1), h = Math.max(maxY - minY, 1);
-    const k = Math.min(2.4, 0.82 / Math.max(w / width, h / height));
+    const k = Math.min(2.2, 0.84 / Math.max(w / width, h / height));
     const tx = width / 2 - k * (minX + maxX) / 2, ty = height / 2 - k * (minY + maxY) / 2;
     const t = d3.zoomIdentity.translate(tx, ty).scale(k);
-    (animate && !REDUCE ? svg.transition().duration(560).ease(EASE) : svg).call(zoom.transform, t);
+    (animate && !REDUCE ? svg.transition().duration(620).ease(EASE) : svg).call(zoom.transform, t);
   }
 
-  // =====================================================
   function openSheet(d) {
     const body = $("#sheet-body");
     const study = d.study ? REPO_BASE + d.study : "";
@@ -332,7 +328,6 @@
     setTimeout(() => { sheet.hidden = true; scrim.hidden = true; }, 380);
   }
 
-  // =====================================================
   function buildDomainRail() {
     const rail = $("#domain-rail");
     rail.innerHTML = "";
@@ -396,7 +391,6 @@
     if (!isMap) { closeSheet(); $("#index-view").scrollTop = 0; }
   }
 
-  // =====================================================
   function wireUI() {
     $("#view-btn").addEventListener("click", () => setView(currentView === "map" ? "index" : "map"));
 
@@ -437,7 +431,7 @@
     document.querySelectorAll(".chip").forEach((c) => c.classList.toggle("active", c.dataset.domain === "__all"));
     const set = new Set(matches(q).map((n) => n.id));
     nodeSel.classed("selected", false).classed("lit", (d) => set.has(d.id)).classed("dim", (d) => !set.has(d.id));
-    linkSel.classed("lit", false).classed("dim", true);
+    linkSel.classed("lit", false).classed("dim", true).each(function () { this.removeAttribute("marker-end"); });
     nodeSel.classed("show-label", (d) => set.has(d.id));
     constSel.classed("active", false).classed("shown", false).classed("muted", true);
   }
@@ -452,16 +446,11 @@
     sim.alpha(0.4).restart();
   }
 
-  // =====================================================
   function runReveal() {
     const bar = $("#loader-bar");
     requestAnimationFrame(() => { if (bar) bar.style.width = "100%"; });
     const delay = REDUCE ? 200 : 1050;
-    setTimeout(() => {
-      $("#loader").classList.add("gone");
-      fitView(!REDUCE);
-      refreshLabels();
-    }, delay);
+    setTimeout(() => { $("#loader").classList.add("gone"); fitView(!REDUCE); refreshLabels(); }, delay);
     hintTimer = setTimeout(dismissHint, 7000);
   }
   function dismissHint() {

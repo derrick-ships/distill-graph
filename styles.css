@@ -363,3 +363,47 @@ html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; 
   .nav-btn:active, .chip:active, .cta:active, .conn:active,
   #zoom-controls button:active, #legend-btn:active { transform: none; }
 }
+
+/* ===================== v3 CRAFT REFINEMENT ===================== */
+
+/* kill the browser focus box on tap; keyboard users get a clean ring on the star only */
+.node:focus { outline: none; }
+.node:focus-visible { outline: none; }
+.node:focus-visible .star { stroke: var(--ink); stroke-width: 2px; paint-order: stroke; }
+
+/* stars: bright crisp core + tight, sparing glow (no muddy grey blobs) */
+.node .core { fill: oklch(0.99 0.004 250); opacity: 0.92; pointer-events: none; transition: opacity 0.2s; }
+.node .halo { opacity: 0; }
+.node.lit .halo { opacity: 0.4; }
+.node.selected .halo { opacity: 0.62; }
+.node.dim .core { opacity: 0.45; }
+
+/* labels: soft layered shadow, no hard cartoon outline */
+.node .label {
+  font-size: 10.5px; font-weight: 500; letter-spacing: 0.03em;
+  stroke: none; paint-order: normal;
+  text-shadow: 0 0 4px var(--canvas-deep), 0 0 9px var(--canvas-deep), 0 1px 2px oklch(0 0 0 / 0.85);
+}
+.node.show-label .label { opacity: 0.78; }
+.node.lit .label, .node.selected .label { opacity: 1; }
+
+/* a delicate web at rest; crisp only where it's lit */
+.edge { stroke-opacity: 0.12; }
+.edge.depends-on { stroke-opacity: 0.2; }
+.edge.same-repo { stroke-opacity: 0.1; }
+.edge.same-domain { stroke-opacity: 0.15; }
+.edge.alternative-to { stroke-opacity: 0.18; }
+.edge.similar-pattern { stroke-opacity: 0.09; }
+.edge.lit { stroke-opacity: 0.85 !important; }
+.edge.dim { stroke-opacity: 0.03 !important; }
+.arrowhead { fill: var(--ink); opacity: 0.78; }
+
+/* constellation names: refined, soft, only at low zoom */
+.constellation {
+  font-size: 11.5px; letter-spacing: 0.22em; fill: var(--text-3);
+  stroke: none; paint-order: normal;
+  text-shadow: 0 0 6px var(--canvas-deep), 0 1px 2px var(--canvas-deep);
+}
+.constellation.shown { opacity: 0.4; }
+.constellation.active { opacity: 0.92; fill: var(--text-2); }
+.constellation.muted { opacity: 0.08; }
