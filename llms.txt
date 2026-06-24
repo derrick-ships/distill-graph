@@ -1,12 +1,12 @@
 # Distill ▲ Graph
 
-> A knowledge graph of 187 reusable engineering patterns, distilled from 38 open-source repositories into 64 domains. This file is the machine-readable representation of the graph for AI agents and crawlers. The visual app at https://distill-graph.vercel.app renders the same data as an interactive star map.
+> A knowledge graph of 190 reusable engineering patterns, distilled from 39 open-source repositories into 67 domains. This file is the machine-readable representation of the graph for AI agents and crawlers. The visual app at https://distill-graph.vercel.app renders the same data as an interactive star map.
 
 ## At a glance
-- Patterns: 187
-- Domains: 64
-- Repositories: 38
-- Connections: 527 (avg 5.6 per pattern)
+- Patterns: 190
+- Domains: 67
+- Repositories: 39
+- Connections: 533 (avg 5.6 per pattern)
 - Source of truth: https://github.com/derrick-ships/distill-it
 - Raw data (JSON): https://distill-graph.vercel.app/graph.json
 - Visual map: https://distill-graph.vercel.app  ·  Stats/analysis: https://distill-graph.vercel.app/stats
@@ -15,9 +15,9 @@
 Each pattern has a label, a domain, a source repository, a one-line summary, a plain-language study doc, and a build spec (a self-contained reimplementation guide). Study and build links point into the distill-it repository.
 
 ## The backbone (most connected patterns, study these first)
-1. Ordered Backend Routing (14 connections) — agent-architecture, from agent-reach
-2. Agentic Loop (14 connections) — ai-workflow, from open-design
-3. Multi-Source Research Engine (13 connections) — research-automation, from last30days-skill
+1. Multi-Source Research Engine (14 connections) — research-automation, from last30days-skill
+2. Ordered Backend Routing (14 connections) — agent-architecture, from agent-reach
+3. Agentic Loop (14 connections) — ai-workflow, from open-design
 4. Scrape Engine + Fallback Pipeline (13 connections) — web-extraction, from firecrawl
 5. Converter Pipeline (12 connections) — document-conversion, from markitdown
 6. Reactive Store Architecture (12 connections) — state-management, from xyflow
@@ -296,11 +296,11 @@ parallel multi-source retrieval, entity resolution before search, engagement-bas
 - **Agentic Research Planning** — from scira. Two-phase deep research: a cheap model produces a structured plan (1-5 topics x 3-5 todos), then a capable model runs an autonomous agent up to 75 steps with search/browse/code/file tools, all inside one outer tool call. Outer chat loop capped at 5 steps.
   [study](https://github.com/derrick-ships/distill-it/blob/main/features/research-automation/study/agentic-research-planning--from-scira.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/research-automation/build/agentic-research-planning--from-scira.md) · [origin repo](https://github.com/zaidmukaddam/scira)
 
-- **Entity Resolution** — from last30days-skill. 4 parallel searches resolve topic → {subreddits, handles, repos, context}. X handles get 3× URL weight. GitHub -action canonicalization. News context capped at 300 chars for LLM injection.
-  [study](https://github.com/derrick-ships/distill-it/blob/main/features/research-automation/study/entity-resolution--from-last30days-skill.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/research-automation/build/entity-resolution--from-last30days-skill.md) · [origin repo](https://github.com/mvanhorn/last30days-skill)
-
 - **Engagement Signal Ranking** — from last30days-skill. Two-stage: RRF (k=60, topic-sensitive source_weights) then LLM rerank of top-N. Quality nudge detects degraded sources via domain diversity + snippet density. All inputs from pipeline Report.
   [study](https://github.com/derrick-ships/distill-it/blob/main/features/research-automation/study/engagement-signal-ranking--from-last30days-skill.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/research-automation/build/engagement-signal-ranking--from-last30days-skill.md) · [origin repo](https://github.com/mvanhorn/last30days-skill)
+
+- **Entity Resolution** — from last30days-skill. 4 parallel searches resolve topic → {subreddits, handles, repos, context}. X handles get 3× URL weight. GitHub -action canonicalization. News context capped at 300 chars for LLM injection.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/research-automation/study/entity-resolution--from-last30days-skill.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/research-automation/build/entity-resolution--from-last30days-skill.md) · [origin repo](https://github.com/mvanhorn/last30days-skill)
 
 - **Search-Driven Scraping** — from scrapegraph-ai. Question-only research: LLM rewrites prompt -> web search (DuckDuckGo default / Serper) -> scrape top-N with full SmartScraper -> merge per-page answers. A node runs other graphs (the real parallelism). Returns considered_urls for citations.
   [study](https://github.com/derrick-ships/distill-it/blob/main/features/research-automation/study/search-driven-scraping--from-scrapegraph-ai.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/research-automation/build/search-driven-scraping--from-scrapegraph-ai.md) · [origin repo](https://github.com/ScrapeGraphAI/Scrapegraph-ai)
@@ -677,6 +677,12 @@ Determining a file's true type from content, extension, MIME type hints, and ML-
 - **Magika File Detection** — from markitdown. Layered type detection: extension+MIME hints → mimetypes bidirectional enrichment → Magika ML content scan → charset_normalizer for text files. Returns ranked StreamInfo list.
   [study](https://github.com/derrick-ships/distill-it/blob/main/features/file-detection/study/magika-file-detection--from-markitdown.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/file-detection/build/magika-file-detection--from-markitdown.md) · [origin repo](https://github.com/microsoft/markitdown)
 
+### Fuzzy Search (1)
+typos, prefixes, and near-misses, so a search finds what the user meant, not only what they typed exactly.
+
+- **Length-Gated Typo Tolerance** — from meilisearch. Typo tolerance with the typo budget gated by word length (0 typos for short words, then 1 then 2 as words lengthen; thresholds are index settings), an exact-words FST override, and last-word prefix expansion for search-as-you-type. A query word becomes a set of derivations looked up in the inverted index, each carrying its typo cost so exact matches still rank first.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/fuzzy-search/study/length-gated-typo-tolerance--from-meilisearch.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/fuzzy-search/build/length-gated-typo-tolerance--from-meilisearch.md) · [origin repo](https://github.com/meilisearch/meilisearch)
+
 ### Git (1)
 Git operations that run inside the browser without a local git CLI.
 
@@ -755,11 +761,23 @@ evolving a persisted data format over time without breaking existing data — an
 - **Schema & Migrations** — from tldraw. Versioned bidirectional migrations. Namespaced ids (sequenceId/version) grouped into sequences with record/store/storage scope; cross-sequence dependsOn resolved by topological sort. Compact SerializedSchema travels with snapshots + connect handshake; up to upgrade, down to serve older peers.
   [study](https://github.com/derrick-ships/distill-it/blob/main/features/schema-migrations/study/schema-migrations--from-tldraw.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/schema-migrations/build/schema-migrations--from-tldraw.md) · [origin repo](https://github.com/tldraw/tldraw)
 
+### Search Relevance (1)
+turning a candidate set of matching documents into a ranked list using a defined, multi-stage policy rather than a single score.
+
+- **Ranking-Rules Bucket Sort** — from meilisearch. Order search results by a fixed, reorderable cascade of ranking rules (words, typo, proximity, attribute, sort, exactness) applied as a bucket sort over RoaringBitmap candidate sets. Each rule breaks ties left by the previous and only sorts as deep as the requested page; typo/proximity are cheapest-path costs over a query-term graph.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/search-relevance/study/ranking-rules-bucket-sort--from-meilisearch.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/search-relevance/build/ranking-rules-bucket-sort--from-meilisearch.md) · [origin repo](https://github.com/meilisearch/meilisearch)
+
 ### Storage Engine (1)
 The in-process engine that holds a database's records in memory and governs how concurrent transactions read and mutate them — versioning, visibility, isolation, and garbage collection.
 
 - **In-Memory MVCC Storage Engine** — from memgraph. In-memory vertex/edge store: per-object delta chains walked backward by timestamp for 3 isolation levels; 56-byte trivially-destructible Delta; pointer-tagging packs type+flags free; non-sequential edge deltas relax MVCC for fast bulk import; lock-free reads, per-object lock only for chain mutation; commit = one atomic timestamp store.
   [study](https://github.com/derrick-ships/distill-it/blob/main/features/storage-engine/study/mvcc-inmemory-storage-engine--from-memgraph.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/storage-engine/build/mvcc-inmemory-storage-engine--from-memgraph.md) · [origin repo](https://github.com/memgraph/memgraph)
+
+### Task Scheduling (1)
+queueing them, deciding which can be combined, and processing them in efficient batches with durable status.
+
+- **Auto-Batching Write Scheduler** — from meilisearch. Coalesce a stream of write tasks into efficient batches: classify each by kind, greedily merge the longest compatible prefix of consecutive same-index tasks into one batch (a compatibility matrix, not a timer), process atomically in one transaction, and keep durable per-task status. Structural ops like index delete/swap break the batch.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/task-scheduling/study/auto-batching-write-scheduler--from-meilisearch.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/task-scheduling/build/auto-batching-write-scheduler--from-meilisearch.md) · [origin repo](https://github.com/meilisearch/meilisearch)
 
 ### Testing Discipline (1)
 structuring code so the logic is testable, and enforcing a coverage bar automatically so it can't rot.
@@ -821,15 +839,16 @@ Reverse-engineering a live website — its visual design, interactions, assets, 
 - claude-video: 3 patterns
 - memgraph: 3 patterns
 - open-caffeine: 3 patterns
+- meilisearch: 3 patterns
 - serena: 2 patterns
 - scrapling: 1 pattern
 - open-webui: 1 pattern
 
 ## Relationship types
 - depends-on (162): one pattern needs another to work
-- same-repo (207): shipped in the same project
+- same-repo (210): shipped in the same project
 - same-domain (55): solves a related problem
-- similar-pattern (81): an independent take on the same idea
+- similar-pattern (84): an independent take on the same idea
 - alternative-to (22): a competing approach
 
 ## Convergent solutions (same problem, different repos, worth comparing)
@@ -936,3 +955,6 @@ Reverse-engineering a live website — its visual design, interactions, assets, 
 - Power-Assertion Wake Lock ~ Provider-Agnostic LLM Layer (open-caffeine / llm-scraper)
 - Coverage-Gated Testable Core ~ Email Provider Abstraction (open-caffeine / inbox-zero)
 - Coverage-Gated Testable Core ~ Provider-Agnostic LLM Layer (open-caffeine / llm-scraper)
+- Ranking-Rules Bucket Sort ~ Engagement Signal Ranking (meilisearch / last30days-skill)
+- Length-Gated Typo Tolerance ~ Adaptive Element Relocation (meilisearch / scrapling)
+- Auto-Batching Write Scheduler ~ Multi-Source Research Engine (meilisearch / last30days-skill)
