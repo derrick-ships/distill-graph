@@ -1,0 +1,22 @@
+{
+  "adaptive-parsing": "Features that make data extraction survive change — selectors, parsers, or extractors that don't break the moment a source (a website, a document format, an API response shape) is restructured.",
+  "agent-architecture": "separating prose contracts from executable engines, enforcing output consistency across harnesses, and designing for cross-platform compatibility.",
+  "agent-distribution": "Patterns for shipping, installing, and maintaining software through an AI agent — where a versioned natural-language runbook is the installer, bounded by explicit safety guardrails, and the same mechanism handles updates and ongoing health.",
+  "ai-automation": "How software turns natural-language user intent into structured, automated actions over a stream of incoming items — with an LLM in the loop for the judgment calls and deterministic code for everything that can be decided cheaply.",
+  "ai-integration": "Wiring external AI services (cloud OCR, LLM vision, speech recognition, provider-agnostic LLM SDKs) into a product — as enhancement layers in a pipeline, or as the swappable engine a whole tool is built on.",
+  "code-generation": "Using an LLM to write runnable code as the deliverable, rather than to produce data directly. The model's output is a program — typically to be executed afterward — that does the actual work.",
+  "content-preprocessing": "Reducing raw, messy source material into a clean, compact representation an LLM can read cheaply and accurately — before any extraction or reasoning happens.",
+  "content-synthesis": "Turning raw multi-source retrieval results into coherent, deduplicated, ranked summaries — clustering duplicate stories, selecting diverse representatives, and generating shareable output formats.",
+  "credential-management": "Patterns for managing multi-tier authentication in tools that aggregate from heterogeneous sources — keyless public APIs, browser-cookie sessions, and paid API keys — with graceful degradation when credentials are absent.",
+  "diagnostics": "Patterns for answering \"is this actually working right now?\" — health probing of external dependencies, survivable aggregation into a human/agent-readable report, and turning failures into actionable, specific fixes.",
+  "document-conversion": "Converting structured documents (PDFs, Office files, archives, plaintext) into clean Markdown for downstream text analysis or LLM consumption.",
+  "email-platform": "a single, provider-agnostic interface that wraps Gmail and Outlook/Microsoft Graph behind one set of methods, plus the OAuth token plumbing that keeps those clients alive.",
+  "file-detection": "Determining a file's true type from content, extension, MIME type hints, and ML-based identification — without trusting the filename alone.",
+  "inbox-cleanup": "unsubscribing from unwanted senders, mass-archiving low-value mail, and tracking per-sender status so the system stops re-bothering the user.",
+  "media-processing": "Extracting text, metadata, and AI-generated descriptions from binary media files (images, audio) for use in text pipelines.",
+  "plugin-architecture": "Patterns for making a library extensible by third parties via Python entry points, without modifying the core package.",
+  "research-automation": "parallel multi-source retrieval, entity resolution before search, engagement-based ranking, and graceful degradation when sources fail.",
+  "structured-extraction": "Turning unstructured content (a webpage, a document, a blob of text) into typed, schema-validated data using an LLM as the extraction engine.",
+  "tts": "on-device / local text-to-speech — turning text into a speech waveform without a cloud API.",
+  "web-extraction": "Turning web resources — HTML pages, YouTube videos, RSS feeds, Wikipedia articles — into clean Markdown by combining HTTP fetching, DOM parsing, and platform-specific API calls."
+}
