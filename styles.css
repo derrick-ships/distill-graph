@@ -325,3 +325,41 @@ a { color: inherit; }
   *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.06ms !important; }
   #loader .mark { opacity: 1; animation: none; }
 }
+
+/* ===================== POLISH PASS — make-interfaces-feel-better ===================== */
+
+html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+/* updating numbers stay aligned */
+.index-stats, .di-count, .loader-sub { font-variant-numeric: tabular-nums; }
+
+/* kinder text wrapping (no orphans on titles, even rag on body) */
+.loader-word, .sheet-title, .index-head h1, .di-name, .idx-label { text-wrap: balance; }
+.sheet-summary, .di-desc, .site-footer span { text-wrap: pretty; }
+
+/* tactile, interruptible press states on controls (compositor-friendly only) */
+.nav-btn, .chip, .cta, .conn, #zoom-controls button, #legend-btn {
+  transition-property: transform, background-color, color, border-color, box-shadow;
+  transition-duration: 160ms;
+  transition-timing-function: var(--ease);
+}
+.nav-btn:active, .chip:active, .cta:active, .conn:active,
+#zoom-controls button:active, #legend-btn:active { transform: scale(0.96); }
+
+/* depth only where a floating surface earns it (popovers / the sheet) */
+#sheet { box-shadow: 0 -24px 64px oklch(0.02 0.01 256 / 0.55); }
+@media (min-width: 1024px) { #sheet { box-shadow: -30px 0 72px oklch(0.02 0.01 256 / 0.5); } }
+#domain-info, #legend { box-shadow: 0 12px 34px oklch(0.02 0.01 256 / 0.5); }
+
+/* hit areas >= 40px */
+.chip, .conn { min-height: 40px; }
+
+/* optical centering: the up-right arrow + reset glyph sit a hair low geometrically */
+.cta .arr { transform: translateY(0.5px); }
+#zoom-controls #zoom-reset { padding-bottom: 1px; }
+
+/* respect reduced-motion: no press-scale if the user opts out */
+@media (prefers-reduced-motion: reduce) {
+  .nav-btn:active, .chip:active, .cta:active, .conn:active,
+  #zoom-controls button:active, #legend-btn:active { transform: none; }
+}
