@@ -1,111 +1,118 @@
 ---
 name: distill-graph-sync
-description: Use when a feature has been added to or changed in the distill-it knowledge graph (via /distill or by editing graph/graph.json) and that change needs to show up in the distill-graph PWA — the SpaceX-style star-map visualization deployed at https://distill-graph.vercel.app (repo github.com/derrick-ships/distill-graph). Keeps the mirrored graph.json in sync, validates the data contract, and redeploys without breaking the app. Triggers: "update distill-graph", "sync the graph PWA", "I added a feature to distill-it", "redeploy the star map", "push the new node to the visualization".
+description: Use when a feature has been added to or changed in the distill-it knowledge graph (via /distill or by editing graph/graph.json) and that change needs to show up in the distill-graph PWA, the star-map visualization deployed at https://distill-graph.vercel.app (repo github.com/derrick-ships/distill-graph). Keeps the mirrored graph.json, the derived domains.json and llms.txt, the stats page, and the offline cache in sync, then redeploys. Triggers: "update distill-graph", "sync the graph PWA", "I added a feature to distill-it", "redeploy the star map", "update the stats page".
 ---
 
 # Distill-Graph Sync
 
 Keep the **distill-graph** PWA in sync with the **distill-it** knowledge graph after features
-are added/changed, and redeploy — without breaking anything.
+are added or changed, and redeploy, without breaking anything.
 
 ## Mental model (read this first)
 
-`distill-graph` is a **static, zero-build PWA** that renders `distill-it/graph/graph.json` as a
-monochrome star map. **The app derives EVERYTHING from graph.json at runtime** — node/edge/domain/
-repo counts, the force layout, which stars get labels, the domain filter chips, and the INDEX list.
+`distill-graph` is a **static, zero-build PWA** that renders `distill-it/graph/graph.json`. It has
+three surfaces, and all of them derive from the data at runtime or via one script:
 
-There are **no hardcoded feature lists or counts** anywhere. Because of that, adding a feature is
-almost always just three steps: **copy `graph.json` → validate → deploy.** You rarely touch app code.
+1. **The map** (`/`) an interactive star chart. Computes everything from `graph.json` in the browser.
+2. **The stats page** (`/stats`) a data story (backbone, foundations, coverage, sources, relationship
+   mix, convergent pairs). Every figure is computed live from `graph.json`; nothing is hardcoded.
+3. **`/llms.txt`** the machine-readable representation of the whole graph for AI agents and crawlers.
+   Generated from the data by a script.
 
-## The data contract — `graph.json`
+Adding a feature is almost always: copy `graph.json`, regenerate derived files, validate, deploy.
+You rarely touch app code. One command does the first two steps.
+
+## The data contract, graph.json
 
 ```jsonc
 {
   "nodes": [{
     "id":      "domain/slug--from-repo",   // REQUIRED, unique
-    "label":   "Human Title",              // REQUIRED  → star label + sheet title + index row
-    "domain":  "domain-name",              // REQUIRED  → constellation group + filter chip + index section (any string)
-    "repo":    "repo-name",                // REQUIRED  → "FROM <repo>", repo count (any string)
-    "summary": "1–3 sentences.",           // REQUIRED  → sheet body (plain text; HTML auto-escaped)
-    "study":   "features/<domain>/study/<slug>.md",  // optional → "STUDY DOC" link
-    "build":   "features/<domain>/build/<slug>.md",  // optional → "BUILD SPEC" link
-    "source":  "https://github.com/owner/repo",      // optional → "ORIGIN REPO" link
-    "notebooklm": ""                                 // optional → "NOTEBOOKLM" link
+    "label":   "Human Title",              // REQUIRED  -> star + sheet title + index + stats + llms.txt
+    "domain":  "domain-name",              // REQUIRED  -> constellation, filter, coverage, llms (any string)
+    "repo":    "repo-name",                // REQUIRED  -> star color, sources chart, llms (any string)
+    "summary": "1-3 sentences.",           // REQUIRED  -> sheet body + llms.txt (plain text; HTML escaped)
+    "study":   "features/<domain>/study/<slug>.md",  // optional -> STUDY DOC link + llms.txt
+    "build":   "features/<domain>/build/<slug>.md",  // optional -> BUILD SPEC link + llms.txt
+    "source":  "https://github.com/owner/repo",      // optional -> ORIGIN REPO link + llms.txt
+    "notebooklm": ""                                 // optional -> NOTEBOOKLM link
   }],
   "edges": [{ "from": "<node id>", "to": "<node id>", "type": "depends-on" }]
 }
 ```
 
-- `study` / `build` are **repo-relative paths**. The app prefixes them with
-  `https://github.com/derrick-ships/distill-it/blob/main/` — so **distill-it must be pushed to
-  `main`** with those files present, or the links 404.
-- `edge.type` is one of: `depends-on` · `same-repo` · `same-domain` · `alternative-to` ·
-  `similar-pattern`. **Unknown types still render** (safe faint default in `styles.css`), but add a
-  `.edge.<type>` rule if you want a distinct dash/opacity.
-
-## How the app stays safe automatically
-
-- Edges with an endpoint that isn't a node are **silently dropped**.
-- Duplicate edges are **de-duped**.
-- Missing optional fields just **omit that button** — no crash.
-- Counts/labels/filters **recompute** from the data.
+- `study` / `build` are repo-relative paths. The app and `llms.txt` prefix them with
+  `https://github.com/derrick-ships/distill-it/blob/main/`, so distill-it must be pushed to `main`
+  with those files present, or the links 404.
+- `edge.type` is one of: `depends-on`, `same-repo`, `same-domain`, `similar-pattern`,
+  `alternative-to`. Unknown types still render (safe default in `styles.css`), but the stats page and
+  legend only label these five.
 
 ## Procedure
 
-1. **Make the change in distill-it first.** Run `/distill <repo>` or edit
-   `distill-it/graph/graph.json` and write the `features/<domain>/study|build/*.md` docs.
-   **Commit and push distill-it to `main`** (otherwise STUDY/BUILD links 404).
+1. Make the change in distill-it first. Run `/distill <repo>` or edit `graph/graph.json` and write the
+   `features/<domain>/study|build/*.md` docs and the domain's `_domain.md`. Commit and push distill-it
+   to `main` (otherwise study/build links 404 in the app AND in llms.txt).
 
-2. **Sync + validate** (from the distill-graph repo root):
+2. Sync, regenerate, validate from the distill-graph repo root:
    ```bash
    ./scripts/update-from-distill-it.sh
    ```
-   This copies `graph.json` over and runs a data-contract check (required fields, unique ids,
-   dangling edges, new edge types). **It exits non-zero on hard errors — that is your gate.**
-   If distill-it lives elsewhere: `DISTILL_IT=/path/to/distill-it ./scripts/update-from-distill-it.sh`
+   This copies `graph.json`, runs `scripts/build-derived.js` to regenerate `domains.json` (domain
+   descriptions from distill-it `_domain.md`) and `llms.txt` (the full machine-readable graph), then
+   validates the data contract. It exits non-zero on hard errors: that is your gate. If distill-it
+   lives elsewhere: `DISTILL_IT=/path/to/distill-it ./scripts/update-from-distill-it.sh`
 
-3. **Eyeball it locally** (optional but recommended):
-   ```bash
-   python3 -m http.server 8080    # open http://localhost:8080
-   ```
-   The star count should match the new node total; tap a new star and confirm the sheet + links.
+3. Eyeball it (optional): `python3 -m http.server 8080`, then open `/` and `/stats`. The map star
+   count, the stats header totals, and the `/llms.txt` "At a glance" block all reflect the new totals,
+   because they read the same data.
 
-4. **Deploy to production:**
-   ```bash
-   vercel deploy --prod --yes     # logged in as the project owner
-   ```
-   Or do steps 2+4 in one shot: `./scripts/update-from-distill-it.sh --deploy`
+4. Deploy: `vercel deploy --prod --yes`. Or steps 2 and 4 together:
+   `./scripts/update-from-distill-it.sh --deploy`
 
-5. **Confirm live** at https://distill-graph.vercel.app — the INDEX header stats
-   (`N PATTERNS · M DOMAINS · K REPOSITORIES`) should reflect the new totals.
+5. Confirm live at https://distill-graph.vercel.app (map), `/stats` (analysis), and `/llms.txt`
+   (machine-readable). All three should agree.
 
-## Rules — never break these
+## Derived files, never hand-edit these
 
-- **Never hand-edit `distill-graph/graph.json`.** It is a mirror; the source of truth is
-  `distill-it/graph/graph.json`. Always sync via the script.
-- **Never hardcode a count or feature list.** If you need a count, compute it from the data
-  (see `repoCount` / `labelRest` in `app.js` for the pattern).
-- **Every edge endpoint id must exist in `nodes`.**
-- **Adding a new node field the UI should show?** Wire it into `openSheet()` in `app.js` — it
-  won't appear on its own.
-- **Adding a new edge type you want styled?** Add `.edge.<type>` in `styles.css`.
-- **Validation is the deploy gate.** If `update-from-distill-it.sh` reports a hard error, fix it
-  in distill-it before deploying.
+| File | Generated from | By |
+|---|---|---|
+| `graph.json` | distill-it `graph/graph.json` | `update-from-distill-it.sh` (copy) |
+| `domains.json` | distill-it `features/*/_domain.md` | `scripts/build-derived.js` |
+| `llms.txt` | `graph.json` + `domains.json` | `scripts/build-derived.js` |
 
-## Where things live
+The stats page holds no stored numbers; it recomputes on every load. Same for the map.
+
+## Rules, never break these
+
+- Never hand-edit `graph.json`, `domains.json`, or `llms.txt`. Change the source in distill-it and
+  re-run the sync script.
+- Never hardcode a count or feature list anywhere (map, stats, llms). Compute it from the data. See
+  `app.js` (`repoColor`, `labelRest`), `stats.js`, and `build-derived.js` for the pattern.
+- Every edge endpoint id must exist in `nodes` (dangling edges are dropped silently).
+- Adding a new node field the UI should show? Wire it into `openSheet()` in `app.js`, the relevant
+  section of `stats.js`, and `build-derived.js` (for llms.txt). It will not appear on its own.
+- Adding a new edge type to style or count? Add a `.edge.<type>` rule in `styles.css`, an `EDGE_META`
+  entry in `stats.js`, and an entry in `build-derived.js`.
+- If you bump cached assets, raise the `CACHE` version in `sw.js` (currently `distill-graph-v4`).
+- Validation is the deploy gate. If the sync script reports a hard error, fix it in distill-it first.
+
+## File map
 
 | File | Role |
 |---|---|
-| `graph.json` | mirrored data — **do not hand-edit** |
-| `app.js` | star-map engine: `init()`, `openSheet()`, `buildIndex()`, `buildDomainRail()`, force layout |
-| `styles.css` | design tokens + `.edge.<type>` styles + responsive layout |
-| `index.html` | app shell (nav, loader, sheet, index) |
+| `index.html` / `app.js` / `styles.css` | the interactive star map |
+| `stats.html` / `stats.js` / `stats.css` | the live-computed data story at `/stats` |
+| `llms.txt` | machine-readable graph for AI agents (derived) |
+| `graph.json` / `domains.json` | the data and domain descriptions (derived) |
 | `sw.js` / `manifest.webmanifest` | offline service worker + PWA install |
-| `vendor/d3.v7.min.js` | vendored D3 (offline-safe) |
-| `scripts/update-from-distill-it.sh` | copy + validate (+ `--deploy`) |
+| `scripts/update-from-distill-it.sh` | copy + regenerate + validate (+ `--deploy`) |
+| `scripts/build-derived.js` | regenerate `domains.json` and `llms.txt` from the data |
 
-## If you change the design system
+## Design system (do not regress)
 
-The look is defined by `DESIGN-spacex.md` (pure black, white D-DIN display, **zero accent color**).
-The monochrome rule is load-bearing: domains are encoded via the filter rail + light-up, **not**
-color. Don't reintroduce per-domain colors without an explicit ask — it breaks the system.
+Deep OKLCH-tinted near-black; Geist (UI/body), Geist Mono (data), Oswald (display/titles/star labels);
+stars colored by source repo with a naturalistic spectral palette; glass chrome with inset highlights;
+calm map (labels on hover/select, named constellations, whisper edges). Sentence case for UI labels,
+uppercase only for display titles and eyebrow tags. No pure black/white. Do not reintroduce per-domain
+rainbow colors or flood every node with a label at once: both were explicit regressions that got fixed.

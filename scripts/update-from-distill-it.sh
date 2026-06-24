@@ -24,6 +24,8 @@ cp "$SRC" "$DEST"
 echo "✓ Copied $SRC"
 echo "        → $DEST"
 
+node "$HERE/scripts/build-derived.js"
+
 node - "$DEST" <<'NODE'
 const fs = require('fs'); const p = process.argv[2];
 let d; try { d = JSON.parse(fs.readFileSync(p, 'utf8')); }

@@ -301,7 +301,7 @@
     let connHtml = "";
     if (conns.length) {
       connHtml = `<p class="connected-head">Connected · ${conns.length}</p><div class="conn-list">` +
-        conns.map((c) => `<button class="conn" data-id="${esc(c.id)}"><span class="sw-dot" style="background:${repoColor[c.repo]}"></span>${esc(c.label)}<em>${esc(c.domain)}</em></button>`).join("") + "</div>";
+        conns.map((c) => `<button class="conn" data-id="${esc(c.id)}"><span class="sw-dot" style="background:${repoColor[c.repo]}"></span><span class="conn-name">${esc(c.label)}</span><em>${esc(c.domain)}</em></button>`).join("") + "</div>";
     }
 
     body.innerHTML =
