@@ -407,3 +407,22 @@ html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; 
 .constellation.shown { opacity: 0.4; }
 .constellation.active { opacity: 0.92; fill: var(--text-2); }
 .constellation.muted { opacity: 0.08; }
+
+/* ===================== POLISH: interaction states + empty state ===================== */
+
+/* star hover feedback (real-pointer devices only, so touch taps don't stick) */
+@media (hover: hover) {
+  .node:hover .core { opacity: 1; }
+  .node:hover .halo { opacity: 0.32; }
+  .node:hover .label { opacity: 0.96; }
+}
+
+/* search: no-results state (teaches, doesn't just go dark) */
+#search-empty {
+  position: fixed; z-index: 26; top: 50%; left: 0; right: 0;
+  transform: translateY(-50%); text-align: center; padding: 0 24px;
+  font-family: var(--mono); font-size: 13px; color: var(--text-2);
+  pointer-events: none;
+}
+#search-empty[hidden] { display: none; }
+#search-empty b { color: var(--text-1); font-weight: 500; }

@@ -200,7 +200,7 @@
     });
     gDust.selectAll("circle").data(data).join("circle")
       .attr("cx", (d) => d.x).attr("cy", (d) => d.y).attr("r", (d) => d.r)
-      .attr("fill", "#ffffff").attr("opacity", (d) => d.o)
+      .attr("fill", "oklch(0.97 0.012 250)").attr("opacity", (d) => d.o)
       .style("animation", REDUCE ? null : (d) => `twinkle ${(3 + Math.random() * 4).toFixed(1)}s ease-in-out ${d.d}s infinite`);
   }
 
@@ -317,7 +317,7 @@
     body.scrollTop = 0;
     const sheet = $("#sheet"), scrim = $("#scrim");
     scrim.hidden = false; sheet.hidden = false;
-    requestAnimationFrame(() => { scrim.classList.add("in"); sheet.classList.add("in"); });
+    requestAnimationFrame(() => { scrim.classList.add("in"); sheet.classList.add("in"); sheet.setAttribute("tabindex", "-1"); sheet.focus({ preventScroll: true }); });
   }
   const ctaLink = (href, label) => `<a class="cta" href="${esc(href)}" target="_blank" rel="noopener">${esc(label)}<i class="arr">↗</i></a>`;
 
@@ -426,7 +426,7 @@
   }
   function runSearch(q) {
     q = q.trim();
-    if (!q) { applyHighlight(); return; }
+    if (!q) { applyHighlight(); document.querySelector("#search-empty").hidden = true; return; }
     selected = null; activeDomain = null; closeSheet(); showDomainInfo(null);
     document.querySelectorAll(".chip").forEach((c) => c.classList.toggle("active", c.dataset.domain === "__all"));
     const set = new Set(matches(q).map((n) => n.id));
@@ -434,6 +434,8 @@
     linkSel.classed("lit", false).classed("dim", true).each(function () { this.removeAttribute("marker-end"); });
     nodeSel.classed("show-label", (d) => set.has(d.id));
     constSel.classed("active", false).classed("shown", false).classed("muted", true);
+    const se = document.querySelector("#search-empty");
+    if (set.size === 0) { se.innerHTML = "No patterns match <b>" + esc(q) + "</b>"; se.hidden = false; } else se.hidden = true;
   }
 
   function onResize() {
