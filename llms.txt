@@ -1,12 +1,12 @@
 # Distill ▲ Graph
 
-> A knowledge graph of 36 reusable engineering patterns, distilled from 7 open-source repositories into 20 domains. This file is the machine-readable representation of the graph for AI agents and crawlers. The visual app at https://distill-graph.vercel.app renders the same data as an interactive star map.
+> A knowledge graph of 187 reusable engineering patterns, distilled from 38 open-source repositories into 64 domains. This file is the machine-readable representation of the graph for AI agents and crawlers. The visual app at https://distill-graph.vercel.app renders the same data as an interactive star map.
 
 ## At a glance
-- Patterns: 36
-- Domains: 20
-- Repositories: 7
-- Connections: 84 (avg 4.7 per pattern)
+- Patterns: 187
+- Domains: 64
+- Repositories: 38
+- Connections: 527 (avg 5.6 per pattern)
 - Source of truth: https://github.com/derrick-ships/distill-it
 - Raw data (JSON): https://distill-graph.vercel.app/graph.json
 - Visual map: https://distill-graph.vercel.app  ·  Stats/analysis: https://distill-graph.vercel.app/stats
@@ -15,22 +15,415 @@
 Each pattern has a label, a domain, a source repository, a one-line summary, a plain-language study doc, and a build spec (a self-contained reimplementation guide). Study and build links point into the distill-it repository.
 
 ## The backbone (most connected patterns, study these first)
-1. Converter Pipeline (11 connections) — document-conversion, from markitdown
-2. Multi-Source Research Engine (10 connections) — research-automation, from last30days-skill
-3. Schema-Driven Extraction (10 connections) — structured-extraction, from llm-scraper
-4. AI Rules Engine (10 connections) — ai-automation, from inbox-zero
-5. Ordered Backend Routing (10 connections) — agent-architecture, from agent-reach
-6. Page Format Pipeline (7 connections) — content-preprocessing, from llm-scraper
+1. Ordered Backend Routing (14 connections) — agent-architecture, from agent-reach
+2. Agentic Loop (14 connections) — ai-workflow, from open-design
+3. Multi-Source Research Engine (13 connections) — research-automation, from last30days-skill
+4. Scrape Engine + Fallback Pipeline (13 connections) — web-extraction, from firecrawl
+5. Converter Pipeline (12 connections) — document-conversion, from markitdown
+6. Reactive Store Architecture (12 connections) — state-management, from xyflow
 
 ## Foundations (most depended-upon, highest-leverage to reuse)
+- Reactive Store Architecture (5 patterns depend on it) — from xyflow
 - Email Provider Abstraction (4 patterns depend on it) — from inbox-zero
-- Page Format Pipeline (3 patterns depend on it) — from llm-scraper
-- Provider-Agnostic LLM Layer (3 patterns depend on it) — from llm-scraper
-- Cookie Credential Extraction (3 patterns depend on it) — from agent-reach
-- HTML Web Conversion (2 patterns depend on it) — from markitdown
-- Multi-Source Research Engine (2 patterns depend on it) — from last30days-skill
+- Graph Execution Engine (4 patterns depend on it) — from scrapegraph-ai
+- Cloudflare Worker API-Key Proxy (4 patterns depend on it) — from clicky
+- PDF Ingestion Pipeline (4 patterns depend on it) — from openpaper
+- Scrape Engine + Fallback Pipeline (4 patterns depend on it) — from firecrawl
 
 ## Patterns by domain
+
+### Ai Integration (11)
+Wiring external AI services (cloud OCR, LLM vision, speech recognition, provider-agnostic LLM SDKs) into a product — as enhancement layers in a pipeline, or as the swappable engine a whole tool is built on.
+
+- **Provider-Agnostic LLM Layer** — from llm-scraper. Multi-provider (OpenAI/Anthropic/Google/Groq/Ollama) with zero per-provider code by depending on the Vercel AI SDK LanguageModel abstraction. Constructor takes one model handle; provider chosen by caller. Lesson: abstract one level above the vendor.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/ai-integration/study/provider-agnostic-llm--from-llm-scraper.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/ai-integration/build/provider-agnostic-llm--from-llm-scraper.md) · [origin repo](https://github.com/mishushakov/llm-scraper)
+
+- **Citation-Grounded Chat** — from openpaper. RAG chat that answers ONLY from pre-extracted evidence and tags every claim with inline @cite[n]/@cite[n|paper_id] markers, parsed back into source-anchored footnotes. No-embeddings word-overlap re-anchor for compacted summaries; delimiter-framed JSON streaming.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/ai-integration/study/citation-grounded-chat--from-openpaper.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/ai-integration/build/citation-grounded-chat--from-openpaper.md) · [origin repo](https://github.com/khoj-ai/openpaper)
+
+- **AI Agent with Tool Calling** — from asyar. full multi-provider AI agent (OpenAI/Anthropic/Gemini/Ollama/OpenRouter) with 3-tier tool registry (builtin/extension/MCP), streaming via Tauri events, agentic loop with tool-call rounds, and a provider-abstraction layer normalizing all vendor APIs
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/ai-integration/study/ai-agent-tool-calling--from-asyar.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/ai-integration/build/ai-agent-tool-calling--from-asyar.md) · [origin repo](https://github.com/Xoshbin/asyar)
+
+- **Multi-Provider LLM System** — from bolt-diy. Singleton LLMManager auto-discovers BaseProvider subclasses, caches static+dynamic model lists, and exposes a unified getModelInstance() interface. API keys travel in cookies. 19+ providers via Vercel AI SDK. Framework-detection-free — just implement BaseProvider and register.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/ai-integration/study/multi-provider-llm--from-bolt-diy.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/ai-integration/build/multi-provider-llm--from-bolt-diy.md) · [origin repo](https://github.com/stackblitz-labs/bolt.diy)
+
+- **Azure Doc Intelligence** — from markitdown. Azure prebuilt-layout model for OCR-grade extraction of PDFs, images, Office files. Submits bytes, gets native Markdown back, strips HTML comments. OCR features (high-res, formulas, fonts) enabled only for PDF/image types.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/ai-integration/study/azure-doc-intelligence--from-markitdown.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/ai-integration/build/azure-doc-intelligence--from-markitdown.md) · [origin repo](https://github.com/microsoft/markitdown)
+
+- **Provider-Agnostic Model Layer** — from scrapegraph-ai. '<provider>/<model>' string -> client across ~19 providers via LangChain init_chat_model + bespoke wrappers. Resolves max-input-tokens (model_token) that sizes chunking. model_instance escape hatch; optional InMemoryRateLimiter.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/ai-integration/study/provider-agnostic-model-layer--from-scrapegraph-ai.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/ai-integration/build/provider-agnostic-model-layer--from-scrapegraph-ai.md) · [origin repo](https://github.com/ScrapeGraphAI/Scrapegraph-ai)
+
+- **Context Optimization** — from bolt-diy. Two pre-turn LLM calls: createSummary() collapses old history into structured project summary; selectContext() picks ≤5 relevant files via AI outputting <includeFile>/<excludeFile> XML. Both emit SSE progress events. Gitignore-style file filtering. Optional per-request feature flag.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/ai-integration/study/context-optimization--from-bolt-diy.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/ai-integration/build/context-optimization--from-bolt-diy.md) · [origin repo](https://github.com/stackblitz-labs/bolt.diy)
+
+- **Multi-Provider Model Gateway** — from scira. One scira-* alias per model; a single customProvider maps each alias to a real call (direct, retryable-with-fallback, gateway-brokered, or custom OpenAI-compatible endpoint). ~130 models / 22 providers. Client-safe metadata registry split from secret-bearing wiring.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/ai-integration/study/multi-provider-model-gateway--from-scira.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/ai-integration/build/multi-provider-model-gateway--from-scira.md) · [origin repo](https://github.com/zaidmukaddam/scira)
+
+- **AI Lead Classification (Claude)** — from auto-crm. Optional Claude Sonnet lead grader -> strict JSON {temperature, confidence, nextAction, reasoning} in Spanish. Null-client-as-feature-flag, regex {...} JSON extraction, total silent fallback to the rule-based scorer. Same write contract.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/ai-integration/study/ai-lead-classification--from-auto-crm.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/ai-integration/build/ai-lead-classification--from-auto-crm.md) · [origin repo](https://github.com/Hainrixz/auto-crm)
+
+- **Streaming Claude Screen Context** — from clicky. Sends base64 screenshots plus a transcribed question to Claude (claude-sonnet-4-6, stream:true) through a Cloudflare Worker proxy, parsing SSE content_block_delta/text_delta events and emitting cumulative text to a @MainActor callback for progressive UI. Includes media-type sniffing and a TLS warm-up to survive large image payloads.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/ai-integration/study/streaming-claude-screen-context--from-clicky.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/ai-integration/build/streaming-claude-screen-context--from-clicky.md) · [origin repo](https://github.com/farzaa/clicky)
+
+- **MCP Integration** — from dyad. Model Context Protocol client manager: SQLite-backed server configs, per-tool consent tracking, 8s tool listing timeout with forced dispose, OAuth discovery+PKCE flow, error classification (discovery_failed vs unauthorized) for actionable UI messages.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/ai-integration/study/mcp-integration--from-dyad.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/ai-integration/build/mcp-integration--from-dyad.md) · [origin repo](https://github.com/dyad-sh/dyad)
+
+### Web Extraction (11)
+Turning web resources — HTML pages, YouTube videos, RSS feeds, Wikipedia articles — into clean Markdown by combining HTTP fetching, DOM parsing, and platform-specific API calls.
+
+- **Scrape Engine + Fallback Pipeline** — from firecrawl. URL -> clean output (md/html/screenshot/links/json) via a capability-driven engine fallback chain (fetch -> playwright -> fire-engine chrome-cdp/tlsclient with stealth/retry -> pdf) chosen by feature flags, then a fixed transformer stack. maxAge index cache for low latency.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/web-extraction/study/scrape-engine-fallback-pipeline--from-firecrawl.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/web-extraction/build/scrape-engine-fallback-pipeline--from-firecrawl.md) · [origin repo](https://github.com/firecrawl/firecrawl)
+
+- **Web Search (+ optional scrape)** — from firecrawl. Query a search provider (fire-engine -> SearXNG -> DuckDuckGo fallback) returning normalized web/news/images, then optionally scrape every result concurrently through the same scrape pipeline (3-day cache) and merge content back by URL. Soft-fails; search bills search credits, scrapes self-bill; keyless reserve/reconcile.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/web-extraction/study/web-search-with-scrape--from-firecrawl.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/web-extraction/build/web-search-with-scrape--from-firecrawl.md) · [origin repo](https://github.com/firecrawl/firecrawl)
+
+- **Site URL Map** — from firecrawl. Fast URL discovery for a domain (no page scrape): merge sitemap.xml + fire-engine index (<=100, cached per-URL), dedup, filter by subdomain/external/limit, and optionally rerank by embedding cosine similarity against a search query. Seconds, not a crawl.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/web-extraction/study/site-url-map--from-firecrawl.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/web-extraction/build/site-url-map--from-firecrawl.md) · [origin repo](https://github.com/firecrawl/firecrawl)
+
+- **Declarative HTTP Stream Stack** — from airbyte. Four swappable components + a retriever loop pull records from a REST API: HttpRequester (interpolated url/params + error-handler/backoff) -> DefaultPaginator (strategy computes next token; option says where to inject) -> DpathExtractor (field_path into JSON; [] = whole response) -> RecordSelector (filter+normalize+transform). SimpleRetriever loops until token is None.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/web-extraction/study/declarative-http-stream-stack--from-airbyte.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/web-extraction/build/declarative-http-stream-stack--from-airbyte.md) · [origin repo](https://github.com/airbytehq/airbyte)
+
+- **SmartScraper Pipeline** — from scrapegraph-ai. Flagship: prompt + URL -> structured answer as a 3-node pipeline (Fetch->Parse->GenerateAnswer). 8 variants selected by (html_mode, reasoning, reattempt) flags via a lookup table over the same nodes. reattempt adds a conditional+regenerate self-healing retry loop.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/web-extraction/study/smart-scraper-pipeline--from-scrapegraph-ai.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/web-extraction/build/smart-scraper-pipeline--from-scrapegraph-ai.md) · [origin repo](https://github.com/ScrapeGraphAI/Scrapegraph-ai)
+
+- **Corpus & Academic Search** — from openpaper. Two separate search subsystems: knowledge-base ILIKE substring scan over papers+highlights+annotations (recency-ranked, no embeddings) and external OpenAlex discovery (filters/sort + inverted-index abstract rebuild); Exa is agent-only. Plus 3-pass metadata hydration (DOI resolve -> enrich -> agentic fallback).
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/web-extraction/study/corpus-and-academic-search--from-openpaper.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/web-extraction/build/corpus-and-academic-search--from-openpaper.md) · [origin repo](https://github.com/khoj-ai/openpaper)
+
+- **Agentic Browser Actions** — from firecrawl. An AI agent drives a hosted browser to satisfy a natural-language instruction (click/scroll/type/wait) before capture, returning post-interaction HTML/markdown. A scrape-pipeline transformer (performAgent) calling fire-engine smart-scrape; tiered Gemini models, cost-capped soft-fail, disabled under ZDR.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/web-extraction/study/agentic-browser-actions--from-firecrawl.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/web-extraction/build/agentic-browser-actions--from-firecrawl.md) · [origin repo](https://github.com/firecrawl/firecrawl)
+
+- **Multi-Source Fetch Node** — from scrapegraph-ai. Input normalization: URL (Chromium/requests/BrowserBase/Scrape.do) or local HTML/PDF/CSV/JSON/XML/MD/dir -> list[Document]. HTML->Markdown gated on OpenAI-family models. storage_state for authenticated scraping. Blank-page guard.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/web-extraction/study/multi-source-fetch-node--from-scrapegraph-ai.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/web-extraction/build/multi-source-fetch-node--from-scrapegraph-ai.md) · [origin repo](https://github.com/ScrapeGraphAI/Scrapegraph-ai)
+
+- **HTML Web Conversion** — from markitdown. BeautifulSoup + custom markdownify subclass. Strips scripts/styles, extracts body, RecursionError fallback to plaintext. convert_string() helper used by DOCX/PPTX/XLSX for table rendering. Wikipedia/RSS/Bing specializations.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/web-extraction/study/html-web-conversion--from-markitdown.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/web-extraction/build/html-web-conversion--from-markitdown.md) · [origin repo](https://github.com/microsoft/markitdown)
+
+- **Browser Design Token Extraction** — from ai-website-cloner-template. getComputedStyle() on every DOM element via page.evaluate() in headless Chromium to extract final resolved CSS values. Frequency analysis reveals the design system. Interaction states captured via pseudo-class injection. Responsive variants by viewport resize. Colors converted to oklch for Tailwind v4.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/web-extraction/study/browser-design-token-extraction--from-ai-website-cloner-template.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/web-extraction/build/browser-design-token-extraction--from-ai-website-cloner-template.md) · [origin repo](https://github.com/JCodesMore/ai-website-cloner-template)
+
+- **YouTube Extraction** — from markitdown. YouTube watch URL → Markdown. Meta tag scrape for views/keywords/duration. Recursive ytInitialData JSON search for description. youtube_transcript_api with 3-retry logic for transcript.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/web-extraction/study/youtube-extraction--from-markitdown.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/web-extraction/build/youtube-extraction--from-markitdown.md) · [origin repo](https://github.com/microsoft/markitdown)
+
+### Agent Architecture (10)
+separating prose contracts from executable engines, enforcing output consistency across harnesses, and designing for cross-platform compatibility.
+
+- **Ordered Backend Routing** — from agent-reach. Each capability is a Channel with an ORDERED backends list (preferred→fallbacks). Two-phase check: collect all candidates, first `ok` wins, then first `warn` — so an installed-but-logged-out backend can't mask a working fallback. active_backend records the live one. User pin via <name>_backend (unknown value ignored). Switching backend = reorder a list, not code.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/agent-architecture/study/ordered-backend-routing--from-agent-reach.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/agent-architecture/build/ordered-backend-routing--from-agent-reach.md) · [origin repo](https://github.com/Panniantong/Agent-Reach)
+
+- **Agent Output Contract** — from last30days-skill. 5-law output contract enforced via SKILL.md prompt text: no Sources block, no invented headers, space-dash-space separators, no ## inside body sections, verbatim footer passthrough. Zero runtime validation.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/agent-architecture/study/agent-output-contract--from-last30days-skill.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/agent-architecture/build/agent-output-contract--from-last30days-skill.md) · [origin repo](https://github.com/mvanhorn/last30days-skill)
+
+- **MCP CRM Server** — from auto-crm. Exposes a local SQLite CRM to Claude as 10 stdio MCP tools (contacts/deals/activities/pipeline/followups/stats) over better-sqlite3 (WAL, FKs). Read-tools pre-aggregate; no auth (stdio local-only); shares the live DB with the web app.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/agent-architecture/study/mcp-crm-server--from-auto-crm.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/agent-architecture/build/mcp-crm-server--from-auto-crm.md) · [origin repo](https://github.com/Hainrixz/auto-crm)
+
+- **Per-Contact Conversation Memory** — from whatsapp-agentkit. Minimal async chat memory: one SQLAlchemy table keyed+indexed on phone number, stores user/assistant turns, reads last-N newest-first then reverses to chronological, returns LLM-shaped {role,content} dicts. SQLite local / Postgres prod via one env var (auto-rewrites to asyncpg). Window cap is the only cost control; fetch-before-save avoids duplicating the current turn.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/agent-architecture/study/conversation-memory--from-whatsapp-agentkit.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/agent-architecture/build/conversation-memory--from-whatsapp-agentkit.md) · [origin repo](https://github.com/Hainrixz/whatsapp-agentkit)
+
+- **MCP Sidecar Auto-Detection** — from asyar. scans Claude Desktop, Cursor, Cline, Continue, and Zed config files to auto-import MCP server definitions; rewrites npx→bundled bun and uvx→bundled uv; manages stdio subprocesses with exponential-backoff restart and namespaces tools as mcp__slug__name
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/agent-architecture/study/mcp-sidecar-auto-detection--from-asyar.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/agent-architecture/build/mcp-sidecar-auto-detection--from-asyar.md) · [origin repo](https://github.com/Xoshbin/asyar)
+
+- **Agents as Teammates** — from multica. Actor polymorphism: every authored/assigned/addressed row stores (*_type member|agent, *_id) so an agent creates issues, comments, gets assigned, and hits the inbox like a human. A "blocker" is emergent (agent status + issue status + action_required inbox + comment), not a table.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/agent-architecture/study/agents-as-teammates--from-multica.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/agent-architecture/build/agents-as-teammates--from-multica.md) · [origin repo](https://github.com/multica-ai/multica)
+
+- **Tool & Search-Mode Registry** — from scira. Scope an LLM's tools per mode: two parallel maps (mode->tool-name[] and mode->systemPrompt). Resolver gates access and silently degrades gated modes to web. Tools are factories (close over runtime config); names resolved to objects at call site. 18 modes, ~30 tools.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/agent-architecture/study/tool-and-search-mode-registry--from-scira.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/agent-architecture/build/tool-and-search-mode-registry--from-scira.md) · [origin repo](https://github.com/zaidmukaddam/scira)
+
+- **Autonomous Execution Lifecycle + WS Streaming** — from multica. agent_task_queue state machine (queued->dispatched->running->completed|failed|cancelled) across server+daemon. WS dispatch is a wakeup HINT; daemon claims via transactional HTTP. Typed, seq-numbered transcript events (text/tool_use/tool_result/error) over one multiplexed socket.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/agent-architecture/study/autonomous-execution-lifecycle--from-multica.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/agent-architecture/build/autonomous-execution-lifecycle--from-multica.md) · [origin repo](https://github.com/multica-ai/multica)
+
+- **Agentic Video-Understanding Pipeline (/watch)** — from claude-video. Skill that gives an agent a video 'sense' without a video model: orchestrator turns video into timestamped frames + transcript, prints a markdown report of frame paths; the agent Reads the images and answers. Modalities aligned on a shared timestamp clock; delivered via a 5-step SKILL.md contract with graceful degradation everywhere.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/agent-architecture/study/agentic-video-understanding-pipeline--from-claude-video.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/agent-architecture/build/agentic-video-understanding-pipeline--from-claude-video.md) · [origin repo](https://github.com/bradautomates/claude-video)
+
+- **MCP Tool Integration** — from bolt-diy. MCPService singleton connects to MCP servers via SSEClientTransport, lists tools via client.listTools(), injects definitions into system prompt, and routes LLM tool calls to executeTool(). Config arrives per-request; connections cached in singleton. SSE-only in browser (no stdio).
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/agent-architecture/study/mcp-tool-integration--from-bolt-diy.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/agent-architecture/build/mcp-tool-integration--from-bolt-diy.md) · [origin repo](https://github.com/stackblitz-labs/bolt.diy)
+
+### Pipeline Orchestration (9)
+Composing a unit of work as a graph of small, single-purpose nodes that pass a shared mutable state dictionary between them — a deterministic "blackboard" pipeline rather than an autonomous agent loop.
+
+- **Queue-Backed Crawl** — from firecrawl. Recursive site crawl on BullMQ + Redis state: one kickoff job seeds the frontier (sitemap + start page), each scrape job extracts links and enqueues children, dedup via atomic Redis SADD (lockURL). Done = jobs==jobs_done AND kickoff done AND sitemap done. Status pages a ZSET; WS streams; per-team concurrency.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/pipeline-orchestration/study/queue-backed-crawl--from-firecrawl.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/pipeline-orchestration/build/queue-backed-crawl--from-firecrawl.md) · [origin repo](https://github.com/firecrawl/firecrawl)
+
+- **Declarative (Low-Code) CDK** — from airbyte. Define a whole connector in a YAML manifest (instance of a component JSON-schema); a runtime interprets it: resolve $refs -> propagate $parameters -> validate -> ModelToComponentFactory builds live components. One manifest runs on a sync or concurrent engine (worker count declared). Normalization+migration keep old manifests working.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/pipeline-orchestration/study/declarative-low-code-cdk--from-airbyte.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/pipeline-orchestration/build/declarative-low-code-cdk--from-airbyte.md) · [origin repo](https://github.com/airbytehq/airbyte)
+
+- **Incremental Sync & State** — from airbyte. Cursor-based incremental reads: DatetimeBasedCursor slices [start-lookback,end] into step windows -> one stream_slice per window (injected via interpolation), observes each record's cursor_field tracking the MAX, and emits state {cursor_field: highest} at slice boundaries so the next run resumes. Lookback catches late updates; destinations dedup on PK.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/pipeline-orchestration/study/incremental-sync-state--from-airbyte.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/pipeline-orchestration/build/incremental-sync-state--from-airbyte.md) · [origin repo](https://github.com/airbytehq/airbyte)
+
+- **Query Processor Middleware Pipeline** — from metabase. Three-phase engine: preprocess threads the MBQL query through ~40 query->query middleware (normalize, validate, resolve joins, permissions/sandboxing, params, desugar, default limit); compile via driver mbql->native; execute as a reducible streaming rows through a reducing-fn (rff) with cooperative cancellation; postprocess threads rows through reducing-fn middleware (format/limit/annotate). Built once by reduce; hot-reloaded.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/pipeline-orchestration/study/query-processor-middleware-pipeline--from-metabase.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/pipeline-orchestration/build/query-processor-middleware-pipeline--from-metabase.md) · [origin repo](https://github.com/metabase/metabase)
+
+- **Autopilot — Scheduled Agent Work** — from multica. Recurring agent work via cron/webhook/api on a generic DB-backed distributed-lock scheduler (sys_cron_executions): unique (job,scope,plan_time) is both the lock and the audit log; N instances tick safely, one wins each plan. 3 tables: autopilot/trigger/run.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/pipeline-orchestration/study/autopilot-scheduled-work--from-multica.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/pipeline-orchestration/build/autopilot-scheduled-work--from-multica.md) · [origin repo](https://github.com/multica-ai/multica)
+
+- **Graph Execution Engine** — from scrapegraph-ai. ~100-line node/edge engine: nodes pass a shared mutable state dict, traversed from an entry point. Conditional nodes return the next node name (branch/retry). Per-node token/cost accounting. Boolean input-key DSL declares each node's data deps.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/pipeline-orchestration/study/graph-execution-engine--from-scrapegraph-ai.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/pipeline-orchestration/build/graph-execution-engine--from-scrapegraph-ai.md) · [origin repo](https://github.com/ScrapeGraphAI/Scrapegraph-ai)
+
+- **File Rules Engine** — from hazelnut. Condition->action rules over file paths. A Condition is an all-optional struct matched by AND (extension(s), glob/regex name, size >/<, age-days >/<, is_directory, is_hidden; empty=all). Engine evaluates ordered enable-able rules (first/all/filtered-by-name, stop_processing) and executes actions, stopping after a destructive one. Perf: one metadata syscall for size+age; thread-local cap-1000 glob/regex caches.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/pipeline-orchestration/study/file-rules-engine--from-hazelnut.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/pipeline-orchestration/build/file-rules-engine--from-hazelnut.md) · [origin repo](https://github.com/ricardodantas/hazelnut)
+
+- **File Actions Executor** — from hazelnut. A tagged Action enum with per-variant execute(path): Move/Copy (~-expanded dest, opt create_destination, overwrite-guarded), Rename (pattern {name}{ext}{date}), Trash (recoverable) vs Delete (permanent), Archive (zip), RunScript (placeholder {path}{name}{dir} -> platform shell). Move/rename/trash/delete are destructive and stop the chain.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/pipeline-orchestration/study/file-actions-executor--from-hazelnut.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/pipeline-orchestration/build/file-actions-executor--from-hazelnut.md) · [origin repo](https://github.com/ricardodantas/hazelnut)
+
+- **Scheduled Monitoring Agents (Lookouts)** — from scira. Cron-scheduled research agent on QStash. One route does CRUD + the cron callback (disambiguated by signature header). Each fire runs the existing research pipeline, persists a browsable chat, appends a runHistory JSON entry, emails the result. Cron stored UTC, timezone separate.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/pipeline-orchestration/study/scheduled-monitoring-agents--from-scira.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/pipeline-orchestration/build/scheduled-monitoring-agents--from-scira.md) · [origin repo](https://github.com/zaidmukaddam/scira)
+
+### Plugin Architecture (8)
+Patterns for making a library extensible by third parties without modifying the core package — whether via Python entry-point discovery (markitdown) or an in-process, name-keyed hook registry (style-dictionary).
+
+- **Register / Extensibility API** — from style-dictionary. Eight-bucket in-process hook registry (transforms, transformGroups, formats, filters, actions, parsers, preprocessors, fileHeaders). Static (class-level) vs instance (_hooks) scopes deepmerged on read; per-type validation; string-name indirection from config to plugin; silent overwrite on collision.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/plugin-architecture/study/register-extensibility-api--from-style-dictionary.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/plugin-architecture/build/register-extensibility-api--from-style-dictionary.md) · [origin repo](https://github.com/style-dictionary/style-dictionary)
+
+- **Multimethod Driver Abstraction** — from metabase. One interface, N databases via Clojure multimethods + an isa? hierarchy. Drivers register! with a parent (:postgres->:sql-jdbc->:sql); multimethods (mbql->native, execute-reducible-query, describe-*, database-supports?) dispatch on the driver keyword and fall through the hierarchy. SQL DBs inherit one shared MBQL->HoneySQL->string compiler (per-[driver,clause] ->honeysql multimethods) and override only dialect quirks.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/plugin-architecture/study/multimethod-driver-abstraction--from-metabase.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/plugin-architecture/build/multimethod-driver-abstraction--from-metabase.md) · [origin repo](https://github.com/metabase/metabase)
+
+- **Sandboxed Extension System** — from asyar. iframe-sandboxed extension runtime with postMessage bridge, dual-layer permission enforcement (TS frontend + Rust backend), TypeScript SDK with Commander CLI scaffolding, and Chokidar hot-reload in dev mode
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/plugin-architecture/study/sandboxed-extension-system--from-asyar.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/plugin-architecture/build/sandboxed-extension-system--from-asyar.md) · [origin repo](https://github.com/Xoshbin/asyar)
+
+- **Plugin System** — from markitdown. importlib.metadata entry_points discovery under group 'markitdown.plugin'. Lazy load with fault isolation. register_converters(host, **kwargs) callback pattern. __plugin_interface_version__ for forward compat.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/plugin-architecture/study/plugin-system--from-markitdown.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/plugin-architecture/build/plugin-system--from-markitdown.md) · [origin repo](https://github.com/microsoft/markitdown)
+
+- **Skills System** — from open-design. SKILL.md = minimal YAML frontmatter + markdown instructions. adaptAgentSkill() converts to PluginManifest via 3-layer merge (sidecar>adapter>fallback). SHA-256 digest for reproducibility. Pure-TS runtime (no Node imports) runs in daemon/browser/CI.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/plugin-architecture/study/skills-system--from-open-design.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/plugin-architecture/build/skills-system--from-open-design.md) · [origin repo](https://github.com/nexu-io/open-design)
+
+- **Plugin Ecosystem** — from open-design. 3-tier discovery: official (bundled), community (registry), user custom (local drop-in). 22+ agent CLI adapters (one object: bin/versionArgs/buildArgs/streamFormat). Agent execution via stdio child processes. Sidecar open-design.json for highest-priority overrides.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/plugin-architecture/study/plugin-ecosystem--from-open-design.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/plugin-architecture/build/plugin-ecosystem--from-open-design.md) · [origin repo](https://github.com/nexu-io/open-design)
+
+- **Capability-Based Module System** — from vlc. Runtime capability registry where every subsystem (codec, output, UI, network) is a module declaring (capability_string, priority_score). module_need() collects, sorts by score, tries in order, returns first success. Enables hardware-acceleration fallback, platform isolation, and third-party plugins with zero core changes.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/plugin-architecture/study/capability-module-system--from-vlc.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/plugin-architecture/build/capability-module-system--from-vlc.md) · [origin repo](https://code.videolan.org/videolan/vlc)
+
+- **Multi-Platform Agent Sync** — from ai-website-cloner-template. AGENTS.md as single source of truth for project instructions. sync-agent-rules.sh generates 11+ platform copies (CLAUDE.md, GEMINI.md, .cursor/rules/, .github/copilot-instructions.md, etc.). sync-skills.mjs propagates skill definitions. Generated files carry DO NOT EDIT headers and are committed to git.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/plugin-architecture/study/multi-platform-agent-sync--from-ai-website-cloner-template.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/plugin-architecture/build/multi-platform-agent-sync--from-ai-website-cloner-template.md) · [origin repo](https://github.com/JCodesMore/ai-website-cloner-template)
+
+### Canvas Interaction (7)
+panning, zooming, dragging objects across it, and navigating it from an overview map. The shared problem is mapping between screen pixels and flow/world coordinates through a viewport transform [x, y, zoom].
+
+- **PDF Highlights & Annotations** — from openpaper. Anchored PDF highlights storing raw_text + a zoom-invariant scaled-rects position blob (react-pdf-highlighter style), notes attached to highlights, one paper-note per paper. Role-stamped user/assistant (assistant rows immutable); zotero_annotation_key partial-unique index makes Zotero import idempotent.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/canvas-interaction/study/pdf-highlights-annotations--from-openpaper.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/canvas-interaction/build/pdf-highlights-annotations--from-openpaper.md) · [origin repo](https://github.com/khoj-ai/openpaper)
+
+- **Pan & Zoom Canvas** — from xyflow. Infinite pannable/zoomable viewport wrapping d3-zoom. Single [x,y,zoom] transform; factory exposes setViewport/scaleTo/syncViewport; a per-render filter encodes all product rules (pan-on-drag, activation keys, no-pan zones, pan-on-scroll).
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/canvas-interaction/study/pan-zoom-canvas--from-xyflow.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/canvas-interaction/build/pan-zoom-canvas--from-xyflow.md) · [origin repo](https://github.com/xyflow/xyflow)
+
+- **Node Dragging** — from xyflow. d3-drag node movement: multi-select moves as rigid group, group-snaps as a unit, screen-space drag threshold, extent clamp, and rAF edge auto-pan that re-derives position from a stored last pointer.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/canvas-interaction/study/node-dragging--from-xyflow.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/canvas-interaction/build/node-dragging--from-xyflow.md) · [origin repo](https://github.com/xyflow/xyflow)
+
+- **Minimap Navigation** — from xyflow. Overview panel that is a remote control for the main viewport (not a 2nd viewport). d3-zoom on the mini SVG as a gesture recognizer; deltas scaled by minimap-shrink x main-zoom feed setViewportConstrained/scaleTo.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/canvas-interaction/study/minimap-navigation--from-xyflow.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/canvas-interaction/build/minimap-navigation--from-xyflow.md) · [origin repo](https://github.com/xyflow/xyflow)
+
+- **Kanban Pipeline (drag-and-drop)** — from auto-crm. @dnd-kit sales pipeline board. Optimistic update with full-board snapshot rollback: snapshot on drag start, move in onDragOver, PUT /api/pipeline on drop, restore+toast on failure. 8px activation, closestCorners, DragOverlay.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/canvas-interaction/study/kanban-pipeline-dnd--from-auto-crm.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/canvas-interaction/build/kanban-pipeline-dnd--from-auto-crm.md) · [origin repo](https://github.com/Hainrixz/auto-crm)
+
+- **Screen Element Localization** — from clicky. Finds the on-screen pixel of a UI element: resizes a screenshot to the aspect-ratio-nearest Anthropic Computer Use resolution (1024x768/1280x800/1366x768) via exact-pixel NSBitmapImageRep, POSTs to Claude with the computer tool + beta header, parses the tool_use coordinate, then clamps, scales to display points, and flips Y to AppKit's bottom-left origin. Returns a display-local CGPoint or nil.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/canvas-interaction/study/screen-element-localization--from-clicky.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/canvas-interaction/build/screen-element-localization--from-clicky.md) · [origin repo](https://github.com/farzaa/clicky)
+
+- **Animated Pointer Guidance** — from clicky. A transparent, click-through, never-key NSWindow per display hosts a SwiftUI blue-triangle buddy that springs behind the mouse, then flies to a detected element along a timer-driven quadratic Bezier arc (smoothstep easing, tangent rotation, sine scale-pulse) before pointing and returning. Multi-monitor routing via CompanionManager's globalized CGPoint.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/canvas-interaction/study/animated-pointer-guidance--from-clicky.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/canvas-interaction/build/animated-pointer-guidance--from-clicky.md) · [origin repo](https://github.com/farzaa/clicky)
+
+### Media Processing (7)
+Extracting text, metadata, and AI-generated descriptions from binary media files (images, audio) for use in text pipelines.
+
+- **Screen Capture with Self-Exclusion** — from clicky. ScreenCaptureKit single-frame capture of every display that excludes all of the app's own windows (matched by bundle id) so the AI never sees its own overlays; returns cursor-screen-first labeled JPEGs and fixes the CG-vs-AppKit coordinate mismatch for multi-monitor cursor detection.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/media-processing/study/screen-capture-self-exclusion--from-clicky.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/media-processing/build/screen-capture-self-exclusion--from-clicky.md) · [origin repo](https://github.com/farzaa/clicky)
+
+- **Image + LLM Captioning** — from markitdown. JPEG/PNG converter with two optional layers: exiftool subprocess for EXIF metadata, OpenAI-compatible vision API for image description. Both independently optional. Output: key-values + ## Description.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/media-processing/study/image-llm-captioning--from-markitdown.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/media-processing/build/image-llm-captioning--from-markitdown.md) · [origin repo](https://github.com/microsoft/markitdown)
+
+- **Push-to-Talk Streaming Transcription** — from clicky. Global modifier-only hotkey (ctrl+option) via a listen-only CGEvent tap drives AVAudioEngine push-to-talk into a pluggable transcription provider; default AssemblyAI v3 streams 16kHz PCM16 over WebSocket with ordered turn-stitching, with Apple Speech and OpenAI as config-selected fallbacks.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/media-processing/study/push-to-talk-streaming-transcription--from-clicky.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/media-processing/build/push-to-talk-streaming-transcription--from-clicky.md) · [origin repo](https://github.com/farzaa/clicky)
+
+- **Audio Transcription** — from markitdown. WAV/MP3/M4A/MP4 → Markdown via speech_recognition (Google Web Speech API) + exiftool metadata. Duration excluded (wrong from memory stream). Temp file needed for non-WAV formats.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/media-processing/study/audio-transcription--from-markitdown.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/media-processing/build/audio-transcription--from-markitdown.md) · [origin repo](https://github.com/microsoft/markitdown)
+
+- **Media Pipeline** — from vlc. Multi-stage runtime-assembled pipeline: MRL parse → access (bytes) → stream filters → demux (container/packets) → decoder threads (compressed→raw) → vout/aout (render). Input thread drives a main loop with control queue (seek, pause, rate). All stages swappable modules; timeshift buffer optional between demux and decoders.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/media-processing/study/media-pipeline--from-vlc.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/media-processing/build/media-pipeline--from-vlc.md) · [origin repo](https://code.videolan.org/videolan/vlc)
+
+- **Duration-Aware Frame Budgeting** — from claude-video. Frame COUNT budgeted by video duration (short=dense w/ 12-frame floor, long capped at 100), fps back-derived as count/duration and hard-clamped to 2fps. Separate denser tier table for --start/--end focus mode. ffmpeg extract returns absolute per-frame timestamps.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/media-processing/study/duration-aware-frame-budgeting--from-claude-video.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/media-processing/build/duration-aware-frame-budgeting--from-claude-video.md) · [origin repo](https://github.com/bradautomates/claude-video)
+
+- **libVLC Embeddable Engine** — from vlc. LGPL C library wrapping VLC's full multimedia engine. API: libvlc_new(args) → libvlc_media_new_location(url) → libvlc_media_player_new() → set_xwindow/hwnd/nsobject() → play(). Event system fires on internal thread; state machine covers Opening/Buffering/Playing/Paused/Ended/Error. Bindings for C++, Python, C#, Java, Swift.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/media-processing/study/libvlc-embeddable-engine--from-vlc.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/media-processing/build/libvlc-embeddable-engine--from-vlc.md) · [origin repo](https://code.videolan.org/videolan/vlc)
+
+### Credential Management (6)
+Patterns for managing multi-tier authentication in tools that aggregate from heterogeneous sources — keyless public APIs, browser-cookie sessions, and paid API keys — with graceful degradation when credentials are absent.
+
+- **Keyless & x402 Paid Access** — from firecrawl. Two account-less tiers over the same metering. Keyless: IP -> synthetic team preview_keyless_{ip}, two env-gated daily limits (off unless both set), reserve-then-reconcile credits in Redis, agent-aware 429. x402: HTTP-402 pay-per-call via @x402/express EVM exact scheme settled by a facilitator on a configurable network.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/credential-management/study/keyless-and-x402-access--from-firecrawl.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/credential-management/build/keyless-and-x402-access--from-firecrawl.md) · [origin repo](https://github.com/firecrawl/firecrawl)
+
+- **Multi-Tier Credentials** — from last30days-skill. Tier 1 keyless (Reddit/HN/Polymarket/GitHub), Tier 2 browser cookies (X via Bird/Chrome/Safari/xurl, YouTube via yt-dlp/SSH), Tier 3 API keys (.env dual hierarchy, perms 600). Preflight startup checks.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/credential-management/study/multi-tier-credentials--from-last30days-skill.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/credential-management/build/multi-tier-credentials--from-last30days-skill.md) · [origin repo](https://github.com/mvanhorn/last30days-skill)
+
+- **Multi-Path Authentication** — from openpaper. Three auth paths over opaque server-side session tokens (NOT JWT): Google OAuth2, email 6-digit code, and Zotero OAuth 1.0a (library link, not login). 64-char token in a sessions table, httpOnly cookie or Bearer. Refuse-don't-merge cross-provider; several documented security gaps (unverified state, plaintext codes).
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/credential-management/study/multi-path-auth--from-openpaper.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/credential-management/build/multi-path-auth--from-openpaper.md) · [origin repo](https://github.com/khoj-ai/openpaper)
+
+- **Cookie Credential Extraction** — from agent-reach. Multi-browser cookie harvest (rookiepy→browser_cookie3) driven by declarative per-platform specs (named cookies vs whole Cookie-header). Validate-before-save: require a logged-in marker (auth_token+ct0, xq_a_token) — presence≠valid. Atomic 0o600 write (O_CREAT+mode, no write-then-chmod race). shlex-quoted best-effort mirrors into upstream tools' credential files.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/credential-management/study/cookie-credential-extraction--from-agent-reach.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/credential-management/build/cookie-credential-extraction--from-agent-reach.md) · [origin repo](https://github.com/Panniantong/Agent-Reach)
+
+- **Cloudflare Worker API-Key Proxy** — from clicky. A single-file Cloudflare Worker that keeps Anthropic, ElevenLabs, and AssemblyAI keys server-side as Worker secrets, exposing three POST routes — /chat (Claude Messages SSE pass-through), /tts (ElevenLabs MP3 stream), and /transcribe-token (short-lived AssemblyAI token broker). Streams upstream Response.body directly; no CORS, client auth, or rate-limiting.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/credential-management/study/cloudflare-worker-key-proxy--from-clicky.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/credential-management/build/cloudflare-worker-key-proxy--from-clicky.md) · [origin repo](https://github.com/farzaa/clicky)
+
+- **BYOK Settings** — from dyad. Bring-your-own-keys settings system: atomic JSON write (temp+rename), Electron safeStorage encryption for all secrets (API keys, tokens, service accounts), effective settings merge with defaults, unlogged IPC handlers, custom AI provider CRUD in SQLite.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/credential-management/study/byok-settings--from-dyad.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/credential-management/build/byok-settings--from-dyad.md) · [origin repo](https://github.com/dyad-sh/dyad)
+
+### Design Systems (6)
+Systems for defining brand-grade design decisions — typography, color, components, elevation, spacing, design tokens — once, in a single source of truth, then propagating them consistently to every consumer.
+
+- **Token Pipeline Orchestration** — from style-dictionary. End-to-end build engine: load+deep-merge tokens, keep 3 synced representations, then per-platform transform↔resolve convergence loop → filter → format → write. structuredClone-isolated platforms run concurrently; abstracted FS runs in browser or Node.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/design-systems/study/token-pipeline-orchestration--from-style-dictionary.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/design-systems/build/token-pipeline-orchestration--from-style-dictionary.md) · [origin repo](https://github.com/style-dictionary/style-dictionary)
+
+- **Transforms & Transform Groups** — from style-dictionary. Composable name/value/attribute transforms with optional filter; CTI (category/type/item) attribute convention; ordered per-platform groups (css/scss/js/ios/android/flutter/...); `transitive` flag runs value transforms after ref resolution; undefined return = defer.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/design-systems/study/transforms-and-transform-groups--from-style-dictionary.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/design-systems/build/transforms-and-transform-groups--from-style-dictionary.md) · [origin repo](https://github.com/style-dictionary/style-dictionary)
+
+- **Design Systems Library** — from open-design. 150 DESIGN.md files with fixed 9-section schema (Visual Theme, Colors, Typography, Components, Layout, Elevation, Dos/Donts, Responsive, Agent Guide). Zero-config directory scan. Skills can filter to specific sections to reduce context bloat.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/design-systems/study/design-systems-library--from-open-design.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/design-systems/build/design-systems-library--from-open-design.md) · [origin repo](https://github.com/nexu-io/open-design)
+
+- **Reference Resolution Engine** — from style-dictionary. Resolves {token.path} aliases across the token graph: regex {([^}]+)}, dot-separated paths, transitive chains, multi-ref strings, object refs, number-type preservation, stack-based cycle detection, and conditional outputReferences (keep refs only when safe).
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/design-systems/study/reference-resolution-engine--from-style-dictionary.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/design-systems/build/reference-resolution-engine--from-style-dictionary.md) · [origin repo](https://github.com/style-dictionary/style-dictionary)
+
+- **OKLCH Theme Palettes** — from carousel-generator. DaisyUI-style named themes reduced to a 3-color runtime palette. Derives a readable foreground from any base color by interpolating toward black/white in OKLCH (direction by WCAG isDark) via culori. Hex/OKLCH inputs interchangeable.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/design-systems/study/oklch-theme-palettes--from-carousel-generator.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/design-systems/build/oklch-theme-palettes--from-carousel-generator.md) · [origin repo](https://github.com/FranciscoMoretti/carousel-generator)
+
+- **Native Design Tokens** — from penpot. Typed tokens (color/spacing/shadow/typography...) in ordered token sets; themes select which sets are active. Resolved view = merge active sets in global order (later overrides earlier) then resolve {path} references. All token edits ride the file change/undo system.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/design-systems/study/native-design-tokens--from-penpot.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/design-systems/build/native-design-tokens--from-penpot.md) · [origin repo](https://github.com/penpot/penpot)
+
+### Research Automation (6)
+parallel multi-source retrieval, entity resolution before search, engagement-based ranking, and graceful degradation when sources fail.
+
+- **Multi-Source Research Engine** — from last30days-skill. ThreadPoolExecutor fan-out to 6–20 sources. Depth tiers (quick/default/deep) cap source count. 2-phase retrieval with 5xx retry. Unified Report schema. Five emit formats (compact/json/context/md/html).
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/research-automation/study/multi-source-research-engine--from-last30days-skill.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/research-automation/build/multi-source-research-engine--from-last30days-skill.md) · [origin repo](https://github.com/mvanhorn/last30days-skill)
+
+- **Deep Research Loop** — from firecrawl. Autonomous depth-bounded research: from a topic (no URLs), loop generate-queries -> search+scrape -> record sources -> analyze -> pick next topic until maxDepth or timeLimit, then synthesize a report. Async job, Redis-streamed activities+sources; reuses the search+scrape path.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/research-automation/study/deep-research-loop--from-firecrawl.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/research-automation/build/deep-research-loop--from-firecrawl.md) · [origin repo](https://github.com/firecrawl/firecrawl)
+
+- **Agentic Research Planning** — from scira. Two-phase deep research: a cheap model produces a structured plan (1-5 topics x 3-5 todos), then a capable model runs an autonomous agent up to 75 steps with search/browse/code/file tools, all inside one outer tool call. Outer chat loop capped at 5 steps.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/research-automation/study/agentic-research-planning--from-scira.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/research-automation/build/agentic-research-planning--from-scira.md) · [origin repo](https://github.com/zaidmukaddam/scira)
+
+- **Entity Resolution** — from last30days-skill. 4 parallel searches resolve topic → {subreddits, handles, repos, context}. X handles get 3× URL weight. GitHub -action canonicalization. News context capped at 300 chars for LLM injection.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/research-automation/study/entity-resolution--from-last30days-skill.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/research-automation/build/entity-resolution--from-last30days-skill.md) · [origin repo](https://github.com/mvanhorn/last30days-skill)
+
+- **Engagement Signal Ranking** — from last30days-skill. Two-stage: RRF (k=60, topic-sensitive source_weights) then LLM rerank of top-N. Quality nudge detects degraded sources via domain diversity + snippet density. All inputs from pipeline Report.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/research-automation/study/engagement-signal-ranking--from-last30days-skill.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/research-automation/build/engagement-signal-ranking--from-last30days-skill.md) · [origin repo](https://github.com/mvanhorn/last30days-skill)
+
+- **Search-Driven Scraping** — from scrapegraph-ai. Question-only research: LLM rewrites prompt -> web search (DuckDuckGo default / Serper) -> scrape top-N with full SmartScraper -> merge per-page answers. A node runs other graphs (the real parallelism). Returns considered_urls for citations.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/research-automation/study/search-driven-scraping--from-scrapegraph-ai.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/research-automation/build/search-driven-scraping--from-scrapegraph-ai.md) · [origin repo](https://github.com/ScrapeGraphAI/Scrapegraph-ai)
+
+### Code Generation (5)
+Using an LLM to write runnable code as the deliverable, rather than to produce data directly. The model's output is a program — typically to be executed afterward — that does the actual work.
+
+- **Scraper Code Generation** — from llm-scraper. generate() asks LLM to write a self-contained IIFE JS scraper for page+schema instead of extracting. Plain generateText (schema as context, not constraint). stripMarkdownBackticks cleans fences. Amortizes AI cost across runs.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/code-generation/study/scraper-code-generation--from-llm-scraper.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/code-generation/build/scraper-code-generation--from-llm-scraper.md) · [origin repo](https://github.com/mishushakov/llm-scraper)
+
+- **Interview-Driven App Scaffolding** — from whatsapp-agentkit. The product IS a prompt: CLAUDE.md + a /build-agent slash command drive a 5-phase, phase-gated flow (verify env, 10-question interview, generate the full app from inline templates parameterized by answers, local test, deploy). Generates only the chosen variant. No code ships; the app materializes when the LLM runs the recipe.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/code-generation/study/interview-driven-scaffolding--from-whatsapp-agentkit.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/code-generation/build/interview-driven-scaffolding--from-whatsapp-agentkit.md) · [origin repo](https://github.com/Hainrixz/whatsapp-agentkit)
+
+- **Connector Builder Test-Read** — from airbyte. Backend for the no-code builder: run a bounded, instrumented test read of an in-progress manifest with the SAME production engine, capped by TestLimits{max_records,max_pages_per_slice,max_slices}, capturing every HTTP request/response grouped by slice/page + inferred schema, returned as a StreamRead wrapped in a protocol RECORD. Plus resolve/full-resolve manifest.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/code-generation/study/connector-builder-test-read--from-airbyte.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/code-generation/build/connector-builder-test-read--from-airbyte.md) · [origin repo](https://github.com/airbytehq/airbyte)
+
+- **Artifact Code Generation** — from bolt-diy. StreamingMessageParser state machine extracts <boltArtifact>/<boltAction> XML tags from LLM output stream and fires callbacks on open/stream/close. File actions write to WebContainer, shell actions spawn processes. Strips markdown fences. Handles mid-response token limit continuations.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/code-generation/study/artifact-code-generation--from-bolt-diy.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/code-generation/build/artifact-code-generation--from-bolt-diy.md) · [origin repo](https://github.com/stackblitz-labs/bolt.diy)
+
+- **Component Specification Generation** — from ai-website-cloner-template. Generates structured Markdown spec documents per page section with: exact oklch colors, px typography values, interaction state diffs, responsive layout changes, public/ asset paths, and real content samples. Spec quality determines AI builder output quality. Stored in docs/research/components/.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/code-generation/study/component-spec-generation--from-ai-website-cloner-template.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/code-generation/build/component-spec-generation--from-ai-website-cloner-template.md) · [origin repo](https://github.com/JCodesMore/ai-website-cloner-template)
+
+### Infrastructure (5)
+local-first data storage, desktop app integration, AI provider routing, and credential management. Covers SQLite persistence, Electron IPC, HTTP/SSE daemon architecture, and bring-your-own-key proxy patterns.
+
+- **Local-First Architecture** — from open-design. 3-process: Electron main + Node.js Hono daemon + Next.js web UI. SQLite via better-sqlite3 (synchronous). Project files in ~/.od/projects/<id>/. Sidecar IPC: STATUS/EVAL/SCREENSHOT/CONSOLE/CLICK/SHUTDOWN. Optional S3 backend + Docker deployment.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/infrastructure/study/local-first-architecture--from-open-design.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/infrastructure/build/local-first-architecture--from-open-design.md) · [origin repo](https://github.com/nexu-io/open-design)
+
+- **BYOK + Rate-Limited AI Action** — from carousel-generator. Next.js server action fronting an AI call with 3 gates: server key present -> optional per-IP Upstash slidingWindow(10,'15m') rate limit (opt-in by env) -> forward. Parallel client BYOK key hook. Zero-database throttling.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/infrastructure/study/byok-rate-limited-action--from-carousel-generator.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/infrastructure/build/byok-rate-limited-action--from-carousel-generator.md) · [origin repo](https://github.com/FranciscoMoretti/carousel-generator)
+
+- **BYOK Proxy** — from open-design. POST /api/proxy/{anthropic,openai,azure,google,ollama,senseaudio}/stream. API key in request body. SSE response: start/delta/error/end events. SSRF protection blocks RFC1918, link-local, CGNAT. Azure needs apiVersion field.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/infrastructure/study/byok-proxy--from-open-design.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/infrastructure/build/byok-proxy--from-open-design.md) · [origin repo](https://github.com/nexu-io/open-design)
+
+- **Modular Per-Permission Packaging** — from permissionskit. Hub-and-spoke Swift packaging: 15+ per-permission SPM products/CocoaPods subspecs over one core, each gated by a -D compile flag, so consumers compile in only what they use and never reference sensitive Apple APIs they don't need (App Review surface reduction).
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/infrastructure/study/modular-permission-packaging--from-permissionskit.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/infrastructure/build/modular-permission-packaging--from-permissionskit.md) · [origin repo](https://github.com/sparrowcode/PermissionsKit)
+
+- **Async-to-Sync Status Bridging** — from permissionskit. DispatchSemaphore (and static-anchor delegate) pattern that exposes a synchronous status getter over Apple's callback/delegate-only authorization APIs; the deadlock-safe async-to-sync bridge.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/infrastructure/study/async-to-sync-status-bridging--from-permissionskit.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/infrastructure/build/async-to-sync-status-bridging--from-permissionskit.md) · [origin repo](https://github.com/sparrowcode/PermissionsKit)
+
+### Rendering (5)
+How a product turns its data model into pixels — and the visual identity that comes with it.
+
+- **Hand-Drawn Rendering** — from excalidraw. Rough.js sketchy shapes with a FROZEN per-element seed fed into Rough every render so the wobble is deterministic (no shimmer on move/zoom/reload). Size-aware roughness, hand-built SVG-path rounded corners, disableMultiStroke for dashed, WeakMap shape cache keyed on versionNonce. Freedraw via perfect-freehand.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/rendering/study/hand-drawn-rendering--from-excalidraw.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/rendering/build/hand-drawn-rendering--from-excalidraw.md) · [origin repo](https://github.com/excalidraw/excalidraw)
+
+- **DOM-to-PDF Export** — from carousel-generator. Export a live React view as a multi-page PDF: deep-clone node, strip editor chrome by id-prefix, re-inline fonts, proxy cross-origin imgs same-origin, html-to-image rasterize at 1.8x, slice tall canvas into 400x500 jsPDF pages. Reuses react-to-print clone plumbing.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/rendering/study/dom-to-pdf-export--from-carousel-generator.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/rendering/build/dom-to-pdf-export--from-carousel-generator.md) · [origin repo](https://github.com/FranciscoMoretti/carousel-generator)
+
+- **WASM/Skia Render Engine** — from penpot. Rust->WASM (Emscripten) renderer on Skia drawing to one GPU canvas. C-ABI boundary (numbers+pointers only): 'current shape + setters' turtle API plus packed fixed-size binary records in shared linear memory (28-byte path segs, 160-byte fills; alloc->write->read->free). Tile-based incremental rendering with a frame-spread loop.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/rendering/study/wasm-skia-render-engine--from-penpot.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/rendering/build/wasm-skia-render-engine--from-penpot.md) · [origin repo](https://github.com/penpot/penpot)
+
+- **Visualization Auto-Selection** — from metabase. A frontend registry of chart types where each visualization self-describes applicability: getSensibleDisplays(data) filters the registry by each viz's isSensible(data); the chosen one's checkRenderable validates with a user-facing reason; renders with column remapping (FK id->label) and multi-series transforms. New charts plug in by registering and answering the same predicates.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/rendering/study/visualization-auto-selection--from-metabase.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/rendering/build/visualization-auto-selection--from-metabase.md) · [origin repo](https://github.com/metabase/metabase)
+
+- **Notch-Anchored Companion Overlay** — from clicky. A menu-bar-only macOS app with two transparent surfaces: a borderless NSPanel that drops out of the menu-bar/notch strip beneath an NSStatusItem, and a per-screen full-screen click-through OverlayWindow at .screenSaver level using .ignoresSafeArea() to draw a cursor-following companion over the whole display incl. the notch. No safeAreaInsets API — the notch effect is anchoring + ignoring safe area.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/rendering/study/notch-anchored-companion-overlay--from-clicky.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/rendering/build/notch-anchored-companion-overlay--from-clicky.md) · [origin repo](https://github.com/farzaa/clicky)
+
+### Structured Extraction (5)
+Turning unstructured content (a webpage, a document, a blob of text) into typed, schema-validated data using an LLM as the extraction engine.
+
+- **Schema-Driven Extraction** — from llm-scraper. Playwright page + Zod/JSON schema → typed object. Preprocess page, then AI SDK generateText with schema as `output` constraint, read result.output. Schema is both TS type and runtime constraint. One method: run(). No retry loop.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/structured-extraction/study/schema-driven-extraction--from-llm-scraper.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/structured-extraction/build/schema-driven-extraction--from-llm-scraper.md) · [origin repo](https://github.com/mishushakov/llm-scraper)
+
+- **LLM Extract (map-reduce)** — from firecrawl. Prompt+schema+URL(s)/domain -> one structured object via an async map-reduce job: analyzeSchemaAndPrompt decides single-answer vs multi-entity, spreadSchemas splits the schema, docs chunked x50 and batch-extracted concurrently, null-aware merge + dedup + rerank, then merged. Redis-backed status steps.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/structured-extraction/study/llm-extract-map-reduce--from-firecrawl.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/structured-extraction/build/llm-extract-map-reduce--from-firecrawl.md) · [origin repo](https://github.com/firecrawl/firecrawl)
+
+- **Map-Reduce Answer Generation** — from scrapegraph-ai. Big-page extraction: 1 chunk -> single LLM call; N chunks -> parallel per-chunk calls (RunnableParallel) + a merge call. Pydantic/JSON output, 'NA' not-found sentinel, no-```json rule. Failures degrade to {error, raw_response} data.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/structured-extraction/study/map-reduce-answer-generation--from-scrapegraph-ai.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/structured-extraction/build/map-reduce-answer-generation--from-scrapegraph-ai.md) · [origin repo](https://github.com/ScrapeGraphAI/Scrapegraph-ai)
+
+- **Streaming Partial Objects** — from llm-scraper. stream() variant: AI SDK streamText with schema output → partialOutputStream async iterable. Each emission is a schema-conformant partial; last is complete. Mirror of run() but returns {stream,url}. For responsive UIs.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/structured-extraction/study/streaming-partial-objects--from-llm-scraper.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/structured-extraction/build/streaming-partial-objects--from-llm-scraper.md) · [origin repo](https://github.com/mishushakov/llm-scraper)
+
+- **Grounded Retrieval + Inline Citations** — from scira. Inline [text](url) citations with NO post-processor: retrieval tools return {url,title,content}, the model gets them raw, and a strict system-prompt rule block makes it cite inline. Plus domain dedup, provider fallback chain, and content truncation.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/structured-extraction/study/grounded-retrieval-citations--from-scira.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/structured-extraction/build/grounded-retrieval-citations--from-scira.md) · [origin repo](https://github.com/zaidmukaddam/scira)
+
+### Tts (5)
+on-device / local text-to-speech — turning text into a speech waveform without a cloud API.
+
+- **Audio Overview (TTS)** — from openpaper. Spoken 'audio overview' of a paper or project: LLM writes a length-targeted podcast-style script with [^n] citations, markers stripped, chunked at ~10k chars, synthesized via Azure OpenAI gpt-4o-mini-tts, concatenated to one WAV (custom RIFF writer), stored in S3. FastAPI BackgroundTask + poll + presigned URL.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/tts/study/audio-overview-tts--from-openpaper.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/tts/build/audio-overview-tts--from-openpaper.md) · [origin repo](https://github.com/khoj-ai/openpaper)
+
+- **ONNX TTS Pipeline** — from supertonic. On-device TTS as four chained ONNX models: duration_predictor -> text_encoder -> vector_estimator (flow-matching, looped) -> vocoder. Unicode-code-point tokenizer covers 31 languages; voice is a small style JSON; outputs 44.1kHz WAV, no GPU.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/tts/study/onnx-tts-pipeline--from-supertonic.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/tts/build/onnx-tts-pipeline--from-supertonic.md) · [origin repo](https://github.com/supertone-inc/supertonic)
+
+- **Flow-Matching Sampler** — from supertonic. Generative core: iteratively denoise a gaussian latent into a speech latent via vector_estimator.onnx, called total_steps times (5-12, default 8). current_step/total_step are tensor inputs, giving a runtime quality/latency dial without retraining. Length-Aware RoPE keeps text<->speech aligned.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/tts/study/flow-matching-sampler--from-supertonic.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/tts/build/flow-matching-sampler--from-supertonic.md) · [origin repo](https://github.com/supertone-inc/supertonic)
+
+- **Expression Tags** — from supertonic. Inline prosody control via ~10 closed-vocabulary text tags (<laugh>, <breath>, <sigh>). Recognized in the text front-end and mapped to reserved token ids, so they flow through every stage as ordinary tokens and the trained models render them as acoustic events. No DSP, no reference audio.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/tts/study/expression-tags--from-supertonic.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/tts/build/expression-tags--from-supertonic.md) · [origin repo](https://github.com/supertone-inc/supertonic)
+
+- **ElevenLabs Streaming TTS** — from clicky. A @MainActor Swift client that POSTs reply text to a Cloudflare Worker /tts proxy (eleven_flash_v2_5, stability 0.5 / similarity_boost 0.75), receives MP3 as one Data blob, and plays it via a retained AVAudioPlayer. Despite the name, playback is whole-response/buffered with no per-sentence chunking; voice id lives on the proxy.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/tts/study/elevenlabs-streaming-tts--from-clicky.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/tts/build/elevenlabs-streaming-tts--from-clicky.md) · [origin repo](https://github.com/farzaa/clicky)
+
+### Ai Workflow (4)
+Orchestration systems that turn user intent into multi-step agent-driven execution pipelines. Covers iterative design loops, agent CLI detection and spawning, streaming output into sandboxed previews, and convergence mechanics.
+
+- **Agentic Loop** — from open-design. 3-stage linear pipeline (plan→generate→critique) in a single agent conversation thread. Critique Theater: 5-panelist jury (Designer/Critic/Brand/A11Y/Copy) with convergence enforcement. Iteration ceiling via OD_MAX_DEVLOOP_ITERATIONS.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/ai-workflow/study/agentic-loop--from-open-design.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/ai-workflow/build/agentic-loop--from-open-design.md) · [origin repo](https://github.com/nexu-io/open-design)
+
+- **Silent AI Text Transform** — from asyar. global hotkey triggers background LLM call without opening the launcher UI; reads from OS selection/clipboard/typed/none, runs privacy redaction, sends single buffered LLM call, writes to accessibility replace/clipboard/paste/HUD; per-command provider/model override
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/ai-workflow/study/silent-ai-text-transform--from-asyar.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/ai-workflow/build/silent-ai-text-transform--from-asyar.md) · [origin repo](https://github.com/Xoshbin/asyar)
+
+- **Agent CLI Integration** — from open-design. Dual-mode od CLI: default starts daemon+UI, subcommands are thin HTTP clients. PATH scan detects 22+ agent CLIs. Agents run as child processes, stdout relayed via SSE. Recoverable exit codes 64-75. MCP OAuth daemon-hosted.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/ai-workflow/study/agent-cli-integration--from-open-design.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/ai-workflow/build/agent-cli-integration--from-open-design.md) · [origin repo](https://github.com/nexu-io/open-design)
+
+- **Chat-Completion Middleware** — from open-webui. One ordered async pipeline every chat completion flows through: process_chat_payload mutates a shared form_data in fixed order (pipeline/filter inlet -> memory -> web search -> image gen -> code interpreter -> tools -> files), then model call + stream, then process_chat_response runs outlet filters + background title/tag/follow-up tasks. Central fork: native FC exposes capabilities as tool specs vs non-native prompt-injection + a separate task-model tool-selection call. Server/MCP/terminal/client/builtin tools merge into one tools_dict; extra_params is the DI bundle; sources side-channel for citations.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/ai-workflow/study/chat-completion-middleware--from-open-webui.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/ai-workflow/build/chat-completion-middleware--from-open-webui.md) · [origin repo](https://github.com/open-webui/open-webui)
+
+### Codegen (4)
+Systems that generate design artifacts — HTML prototypes, presentation decks, images, and videos — from natural language prompts via AI models.
+
+- **AI Chat Stream** — from dyad. Multi-provider LLM streaming chat via Vercel AI SDK. Assembles context (history, file contents, MCP tools, code index), streams response chunks to renderer, parses XML action tags mid-stream to write files and install deps, saves full SDK message objects to SQLite for multi-turn continuity.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/codegen/study/ai-chat-stream--from-dyad.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/codegen/build/ai-chat-stream--from-dyad.md) · [origin repo](https://github.com/dyad-sh/dyad)
+
+- **Design Artifact Generation** — from open-design. 4 pathways: HTML prototypes (inline-CSS React, sandboxed iframe), HTML decks (fixed skeleton + SLOT: fills), images (AIHubMix), and MP4 videos (Seedance/Wan/Veo/Sora). Async polling for long video renders.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/codegen/study/design-artifact-generation--from-open-design.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/codegen/build/design-artifact-generation--from-open-design.md) · [origin repo](https://github.com/nexu-io/open-design)
+
+- **Image Generation** — from dyad. In-builder AI image generation: 4 style-theme prompt prefixes, AbortController map for cancellation, 120s timeout, handles b64_json and URL responses, HTTPS-only URL validation, 50MB cap, file-locked write to .dyad/media/, returns relative path for AI code references.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/codegen/study/image-generation--from-dyad.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/codegen/build/image-generation--from-dyad.md) · [origin repo](https://github.com/dyad-sh/dyad)
+
+- **Code Explorer** — from dyad. TypeScript-compiler-backed codebase indexer in worker threads. Discovers tsconfig in monorepos by scoring dir names, extracts exported symbols with line numbers, ranks against query via stemming+architecture heuristics, injects top symbols into AI system prompt.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/codegen/study/code-explorer--from-dyad.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/codegen/build/code-explorer--from-dyad.md) · [origin repo](https://github.com/dyad-sh/dyad)
 
 ### Document Conversion (4)
 Converting structured documents (PDFs, Office files, archives, plaintext) into clean Markdown for downstream text analysis or LLM consumption.
@@ -47,38 +440,86 @@ Converting structured documents (PDFs, Office files, archives, plaintext) into c
 - **ZIP Archive Traversal** — from markitdown. Recursive ZIP extraction: iterate entries → BytesIO streams → call parent pipeline on each file. Silent skip on conversion failure. Nested ZIPs handled automatically.
   [study](https://github.com/derrick-ships/distill-it/blob/main/features/document-conversion/study/zip-archive-traversal--from-markitdown.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/document-conversion/build/zip-archive-traversal--from-markitdown.md) · [origin repo](https://github.com/microsoft/markitdown)
 
-### Research Automation (3)
-parallel multi-source retrieval, entity resolution before search, engagement-based ranking, and graceful degradation when sources fail.
+### Content Preprocessing (3)
+Reducing raw, messy source material into a clean, compact representation an LLM can read cheaply and accurately — before any extraction or reasoning happens.
 
-- **Multi-Source Research Engine** — from last30days-skill. ThreadPoolExecutor fan-out to 6–20 sources. Depth tiers (quick/default/deep) cap source count. 2-phase retrieval with 5xx retry. Unified Report schema. Five emit formats (compact/json/context/md/html).
-  [study](https://github.com/derrick-ships/distill-it/blob/main/features/research-automation/study/multi-source-research-engine--from-last30days-skill.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/research-automation/build/multi-source-research-engine--from-last30days-skill.md) · [origin repo](https://github.com/mvanhorn/last30days-skill)
+- **Page Format Pipeline** — from llm-scraper. preprocess(page,options) → {url,content,format}. Six formats: raw_html, markdown (Turndown), text (Mozilla Readability via CDN in-page), html (cleanup scrub, default), image (base64 screenshot), custom. Cost/fidelity dial.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/content-preprocessing/study/page-format-pipeline--from-llm-scraper.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/content-preprocessing/build/page-format-pipeline--from-llm-scraper.md) · [origin repo](https://github.com/mishushakov/llm-scraper)
 
-- **Entity Resolution** — from last30days-skill. 4 parallel searches resolve topic → {subreddits, handles, repos, context}. X handles get 3× URL weight. GitHub -action canonicalization. News context capped at 300 chars for LLM injection.
-  [study](https://github.com/derrick-ships/distill-it/blob/main/features/research-automation/study/entity-resolution--from-last30days-skill.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/research-automation/build/entity-resolution--from-last30days-skill.md) · [origin repo](https://github.com/mvanhorn/last30days-skill)
+- **PDF Ingestion Pipeline** — from openpaper. Two-service webhook-driven background ingest: server validates+stages to S3, Celery worker extracts markdown (markitdown->pymupdf4llm) + page offsets, renders preview, runs 4 parallel Gemini structured-output calls (shared context cache), POSTs results to a webhook that enriches a placeholder Paper row.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/content-preprocessing/study/pdf-ingestion-pipeline--from-openpaper.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/content-preprocessing/build/pdf-ingestion-pipeline--from-openpaper.md) · [origin repo](https://github.com/khoj-ai/openpaper)
 
-- **Engagement Signal Ranking** — from last30days-skill. Two-stage: RRF (k=60, topic-sensitive source_weights) then LLM rerank of top-N. Quality nudge detects degraded sources via domain diversity + snippet density. All inputs from pipeline Report.
-  [study](https://github.com/derrick-ships/distill-it/blob/main/features/research-automation/study/engagement-signal-ranking--from-last30days-skill.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/research-automation/build/engagement-signal-ranking--from-last30days-skill.md) · [origin repo](https://github.com/mvanhorn/last30days-skill)
+- **HTML Cleanup** — from llm-scraper. In-browser DOM scrub via page.evaluate. Removes ~30 tag types (script/style/media/form/nav/head) and prefix-strips noise attributes (style/src/on*/aria-/data-). Mutates live DOM. href kept. Token-diet for the default html format.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/content-preprocessing/study/html-cleanup--from-llm-scraper.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/content-preprocessing/build/html-cleanup--from-llm-scraper.md) · [origin repo](https://github.com/mishushakov/llm-scraper)
 
-### Tts (3)
-on-device / local text-to-speech — turning text into a speech waveform without a cloud API.
+### Content Synthesis (3)
+Turning raw multi-source retrieval results into coherent, deduplicated, ranked summaries — clustering duplicate stories, selecting diverse representatives, and generating shareable output formats.
 
-- **ONNX TTS Pipeline** — from supertonic. On-device TTS as four chained ONNX models: duration_predictor -> text_encoder -> vector_estimator (flow-matching, looped) -> vocoder. Unicode-code-point tokenizer covers 31 languages; voice is a small style JSON; outputs 44.1kHz WAV, no GPU.
-  [study](https://github.com/derrick-ships/distill-it/blob/main/features/tts/study/onnx-tts-pipeline--from-supertonic.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/tts/build/onnx-tts-pipeline--from-supertonic.md) · [origin repo](https://github.com/supertone-inc/supertonic)
+- **Generate llms.txt** — from firecrawl. Auto-generate a site's llms.txt (titled page list + one-line descriptions) and optional llms-full.txt (full markdown, delimiter-separated) by composing map -> scrape -> per-page one-line-summary LLM. Async job, Redis status, Supabase cache, entry/page caps.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/content-synthesis/study/generate-llms-txt--from-firecrawl.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/content-synthesis/build/generate-llms-txt--from-firecrawl.md) · [origin repo](https://github.com/firecrawl/firecrawl)
 
-- **Flow-Matching Sampler** — from supertonic. Generative core: iteratively denoise a gaussian latent into a speech latent via vector_estimator.onnx, called total_steps times (5-12, default 8). current_step/total_step are tensor inputs, giving a runtime quality/latency dial without retraining. Length-Aware RoPE keeps text<->speech aligned.
-  [study](https://github.com/derrick-ships/distill-it/blob/main/features/tts/study/flow-matching-sampler--from-supertonic.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/tts/build/flow-matching-sampler--from-supertonic.md) · [origin repo](https://github.com/supertone-inc/supertonic)
+- **AI Carousel Generation** — from carousel-generator. OpenAI gpt-4o-mini forced to call one function whose params are a Zod content schema (zodToJsonSchema). Styled/unstyled split: LLM fills content only, styling defaults merged via Zod .default(). safeParse gate, temp 0.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/content-synthesis/study/ai-carousel-generation--from-carousel-generator.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/content-synthesis/build/ai-carousel-generation--from-carousel-generator.md) · [origin repo](https://github.com/FranciscoMoretti/carousel-generator)
 
-- **Expression Tags** — from supertonic. Inline prosody control via ~10 closed-vocabulary text tags (<laugh>, <breath>, <sigh>). Recognized in the text front-end and mapped to reserved token ids, so they flow through every stage as ordinary tokens and the trained models render them as acoustic events. No DSP, no reference audio.
-  [study](https://github.com/derrick-ships/distill-it/blob/main/features/tts/study/expression-tags--from-supertonic.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/tts/build/expression-tags--from-supertonic.md) · [origin repo](https://github.com/supertone-inc/supertonic)
+- **Cross-Source Clustering** — from last30days-skill. Two-pass clustering: Pass 1 greedy text similarity (0.42/0.48 thresholds), Pass 2 entity overlap on small clusters. MMR picks up to 3 reps per cluster. Polymarket isolation, same-source enforcement.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/content-synthesis/study/cross-source-clustering--from-last30days-skill.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/content-synthesis/build/cross-source-clustering--from-last30days-skill.md) · [origin repo](https://github.com/mvanhorn/last30days-skill)
 
-### Agent Architecture (2)
-separating prose contracts from executable engines, enforcing output consistency across harnesses, and designing for cross-platform compatibility.
+### Data Portability (3)
+Getting data out of (and bulk into) a system in open, human-friendly formats — the "no lock-in" promise made real, plus ad-hoc reporting via spreadsheets.
 
-- **Ordered Backend Routing** — from agent-reach. Each capability is a Channel with an ORDERED backends list (preferred→fallbacks). Two-phase check: collect all candidates, first `ok` wins, then first `warn` — so an installed-but-logged-out backend can't mask a working fallback. active_backend records the live one. User pin via <name>_backend (unknown value ignored). Switching backend = reorder a list, not code.
-  [study](https://github.com/derrick-ships/distill-it/blob/main/features/agent-architecture/study/ordered-backend-routing--from-agent-reach.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/agent-architecture/build/ordered-backend-routing--from-agent-reach.md) · [origin repo](https://github.com/Panniantong/Agent-Reach)
+- **Airbyte Protocol** — from airbyte. Universal source<->destination contract: a connector is a CLI emitting newline-delimited JSON AirbyteMessages (tagged union) over stdout. Commands spec/check/discover/read; read interleaves RECORD + STATE (resumable checkpoints) with LOG/TRACE/CONTROL. Language-agnostic (Docker + stdout); the platform persists STATE.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/data-portability/study/airbyte-protocol--from-airbyte.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/data-portability/build/airbyte-protocol--from-airbyte.md) · [origin repo](https://github.com/airbytehq/airbyte)
 
-- **Agent Output Contract** — from last30days-skill. 5-law output contract enforced via SKILL.md prompt text: no Sources block, no invented headers, space-dash-space separators, no ## inside body sections, verbatim footer passthrough. Zero runtime validation.
-  [study](https://github.com/derrick-ships/distill-it/blob/main/features/agent-architecture/study/agent-output-contract--from-last30days-skill.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/agent-architecture/build/agent-output-contract--from-last30days-skill.md) · [origin repo](https://github.com/mvanhorn/last30days-skill)
+- **CSV Import / Export** — from auto-crm. Partial-success JSON bulk import (201/207 + per-row errors, name required) and dual contacts/deals CSV export with correct escaping, UTF-8 BOM for Excel, humanized values, attachment download with dated filename.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/data-portability/study/csv-import-export--from-auto-crm.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/data-portability/build/csv-import-export--from-auto-crm.md) · [origin repo](https://github.com/Hainrixz/auto-crm)
+
+- **Zod Form Persistence & JSON Portability** — from carousel-generator. Server-less document model: auto-persist RHF doc to localStorage, validate-on-read and self-heal (clear+defaults on schema drift), and per-field JSON import/export validated by the matching Zod sub-schema before setValue.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/data-portability/study/zod-form-persistence--from-carousel-generator.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/data-portability/build/zod-form-persistence--from-carousel-generator.md) · [origin repo](https://github.com/FranciscoMoretti/carousel-generator)
+
+### Dev Tooling (3)
+Patterns and infrastructure for developer workflow automation — parallel builds, environment reproducibility, agent-compatible project layouts, and CI/CD scaffolding.
+
+- **Parallel Worktree Build** — from ai-website-cloner-template. git worktree add creates one isolated checkout per AI agent on a separate branch. Agents build non-overlapping page sections concurrently with no merge conflicts. Pre-written page.tsx slot pattern prevents the assembly file from being a conflict hotspot. Branches merged sequentially after all agents finish.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/dev-tooling/study/parallel-worktree-build--from-ai-website-cloner-template.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/dev-tooling/build/parallel-worktree-build--from-ai-website-cloner-template.md) · [origin repo](https://github.com/JCodesMore/ai-website-cloner-template)
+
+- **Dependency Manager** — from dyad. Auto npm installer triggered by AI-emitted <dyad-add-dependency> XML tags. Validates package names via regex, selects npm/pnpm, optionally routes through Socket Firewall, executes install with timeout, replaces tag in stored DB message with result tag.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/dev-tooling/study/dependency-manager--from-dyad.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/dev-tooling/build/dependency-manager--from-dyad.md) · [origin repo](https://github.com/dyad-sh/dyad)
+
+- **Agent Dashboard** — from serena. Flask REST API + SPA dashboard running in a background thread alongside the agent. In-memory log ring-buffer, tool call stats, config/memory/task CRUD. Platform-adaptive display: browser (Linux/macOS), pywebview native window (Windows), or system-tray aggregator for multiple instances.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/dev-tooling/study/agent-dashboard--from-serena.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/dev-tooling/build/agent-dashboard--from-serena.md) · [origin repo](https://github.com/oraios/serena)
+
+### Payments (3)
+Everything involved in taking money from a buyer and getting it to a seller through a payment gateway — choosing the right provider, building the checkout/webhook/refund flows, and doing it securely (signed webhooks, idempotent charges, no leaked keys). This domain spans two very different concerns that always travel together:
+
+- **Credit Billing & Concurrency** — from firecrawl. Metering: checkTeamCredits gates work from a cached balance chunk; billTeam decrements (Supabase RPC) non-blocking; sub-jobs self-bill. Concurrency via Redis sorted-sets: over-limit jobs parked in a queue, released as actives finish under plan/crawl maxConcurrency; expiry-scored actives swept.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/payments/study/credit-billing-and-concurrency--from-firecrawl.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/payments/build/credit-billing-and-concurrency--from-firecrawl.md) · [origin repo](https://github.com/firecrawl/firecrawl)
+
+- **Payment Provider Advisor** — from pagokit. Data-driven gateway selection: providers.json catalog with context-keyed score_modifiers. ≤5 questions -> hard filters (region/currency/methods/capability/KYC eliminate) -> score = base 5 + matching modifiers -> top pick. Recommendation gives reasons, real fee calc, KYC timeline, anti-patterns, 'verified on <date>'; never shows the score. Adding a provider = adding a JSON row.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/payments/study/payment-provider-advisor--from-pagokit.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/payments/build/payment-provider-advisor--from-pagokit.md) · [origin repo](https://github.com/Hainrixz/agente-pagokit)
+
+- **Secure Payment Webhook & Idempotency** — from pagokit. Correct payment integration shape: checkout with crypto.randomUUID() idempotency key; webhook in strict order raw body -> verify signature -> reject stale timestamp (replay, ~300s) -> dedup by event id -> act -> 200. Parse-before-verify is the core bug. Per-provider scheme read from data. 5 tables incl. webhook_events_processed. Enforced by the deterministic hooks.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/payments/study/secure-payment-webhook--from-pagokit.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/payments/build/secure-payment-webhook--from-pagokit.md) · [origin repo](https://github.com/Hainrixz/agente-pagokit)
+
+### State Management (3)
+how an application holds, mutates, queries, and observes its in-memory state — especially structured document / editor state made of many interrelated objects that change constantly (often at 60fps during a drag).
+
+- **Reactive Store Architecture** — from xyflow. Zustand store + selector/equality subscriptions for surgical re-renders; array<->Map duality (user nodes[] vs derived nodeLookup of enriched internal nodes); framework-free @xyflow/system core with thin React/Svelte adapters.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/state-management/study/reactive-store--from-xyflow.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/state-management/build/reactive-store--from-xyflow.md) · [origin repo](https://github.com/xyflow/xyflow)
+
+- **Change-Based Mutation Model** — from penpot. Every edit is a serializable `change` (tagged by :type, ~40 types) applied via a process-change dispatch table. Each forward change is built with its inverse (redo vector / undo list), so undo/redo, persistence, and realtime collab all replay the same change list. Event sourcing for a design file.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/state-management/study/change-based-mutation-model--from-penpot.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/state-management/build/change-based-mutation-model--from-penpot.md) · [origin repo](https://github.com/penpot/penpot)
+
+- **Reactive Record Store** — from tldraw. In-memory normalized record DB on signals. Flat 'type:id' records with scope (document/session/presence); reactive queries with incrementally-maintained indexes; every write emits a RecordsDiff {added,updated,removed} tagged source user|remote. Snapshots + migration on load.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/state-management/study/reactive-record-store--from-tldraw.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/state-management/build/reactive-record-store--from-tldraw.md) · [origin repo](https://github.com/tldraw/tldraw)
+
+### Agent Distribution (2)
+Patterns for shipping, installing, and maintaining software through an AI agent — where a versioned natural-language runbook is the installer, bounded by explicit safety guardrails, and the same mechanism handles updates and ongoing health.
+
+- **Agent-Driven Install** — from agent-reach. The installer is a markdown runbook an LLM agent executes: thin 'For Humans' one-line trigger over an imperative 'For AI Agents' program. Hard boundaries (no sudo, confined to ~/.agent-reach/, never pollute the workspace), env-branched steps (PEP 668 / Homebrew / Windows Store-alias), explicit user checkpoints, 'selector/router, never a wrapper'. install.md / update.md / daily watch = one lifecycle mechanism.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/agent-distribution/study/agent-driven-install--from-agent-reach.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/agent-distribution/build/agent-driven-install--from-agent-reach.md) · [origin repo](https://github.com/Panniantong/Agent-Reach)
+
+- **Self-Customizing CRM via Claude Code Commands** — from auto-crm. The configuration layer is an AI agent: .claude/commands/*.md runbooks let Claude edit the real Drizzle schema/components to fit the business instead of a settings UI. Structural vs operational commands, guard-railed by CLAUDE.md/AGENTS.md.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/agent-distribution/study/self-customizing-crm--from-auto-crm.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/agent-distribution/build/self-customizing-crm--from-auto-crm.md) · [origin repo](https://github.com/Hainrixz/auto-crm)
 
 ### Ai Automation (2)
 How software turns natural-language user intent into structured, automated actions over a stream of incoming items — with an LLM in the loop for the judgment calls and deterministic code for everything that can be decided cheaply.
@@ -89,32 +530,32 @@ How software turns natural-language user intent into structured, automated actio
 - **AI Reply Drafting** — from inbox-zero. Tone-matched reply drafts + confidence (LOW/MED/HIGH). Assembles thread (per-msg ~3000 char cap), profile, knowledge, calendar slots, past drafts. Writing-style priority: explicit > learned > default. Learned style is a distilled PII-free summary (<=1500 chars) of the user's edits. Output normalizer + repetition guard.
   [study](https://github.com/derrick-ships/distill-it/blob/main/features/ai-automation/study/ai-reply-drafting--from-inbox-zero.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/ai-automation/build/ai-reply-drafting--from-inbox-zero.md) · [origin repo](https://github.com/elie222/inbox-zero)
 
-### Ai Integration (2)
-Wiring external AI services (cloud OCR, LLM vision, speech recognition, provider-agnostic LLM SDKs) into a product — as enhancement layers in a pipeline, or as the swappable engine a whole tool is built on.
+### Data Structures (2)
+Foundational data representations that make higher-level features possible.
 
-- **Provider-Agnostic LLM Layer** — from llm-scraper. Multi-provider (OpenAI/Anthropic/Google/Groq/Ollama) with zero per-provider code by depending on the Vercel AI SDK LanguageModel abstraction. Constructor takes one model handle; provider chosen by caller. Lesson: abstract one level above the vendor.
-  [study](https://github.com/derrick-ships/distill-it/blob/main/features/ai-integration/study/provider-agnostic-llm--from-llm-scraper.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/ai-integration/build/provider-agnostic-llm--from-llm-scraper.md) · [origin repo](https://github.com/mishushakov/llm-scraper)
+- **MBQL — Metabase Query AST** — from metabase. A database-agnostic query as a typed nested data structure (EDN/JSON) formally specified by a Malli schema: {:database,:type,:query} with tagged-vector clauses ([:field id opts], [:sum field], [:= lhs rhs]). Everything downstream rewrites the query as DATA; only the driver compiles to a dialect. Legacy + MBQL-5, normalized to one.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/data-structures/study/mbql-query-ast--from-metabase.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/data-structures/build/mbql-query-ast--from-metabase.md) · [origin repo](https://github.com/metabase/metabase)
 
-- **Azure Doc Intelligence** — from markitdown. Azure prebuilt-layout model for OCR-grade extraction of PDFs, images, Office files. Submits bytes, gets native Markdown back, strips HTML comments. OCR features (high-res, formulas, fonts) enabled only for PDF/image types.
-  [study](https://github.com/derrick-ships/distill-it/blob/main/features/ai-integration/study/azure-doc-intelligence--from-markitdown.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/ai-integration/build/azure-doc-intelligence--from-markitdown.md) · [origin repo](https://github.com/microsoft/markitdown)
+- **Fractional Indexing (z-order)** — from excalidraw. String order keys (base-62) where any two have a key between them, so insert/move/reorder mutates ONLY the moved element. orderByFractionalIndex sorts by string compare (id tiebreak). Invariant predecessor<current<successor with detect (validateFractionalIndices) + repair of contiguous broken runs (syncInvalidIndices). JITTERED fork of generateNKeysBetween so concurrent same-gap inserts don't collide.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/data-structures/study/fractional-indexing--from-excalidraw.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/data-structures/build/fractional-indexing--from-excalidraw.md) · [origin repo](https://github.com/excalidraw/excalidraw)
 
-### Content Preprocessing (2)
-Reducing raw, messy source material into a clean, compact representation an LLM can read cheaply and accurately — before any extraction or reasoning happens.
+### Deployment (2)
+Patterns for deploying locally-built, in-browser, or AI-generated apps to cloud hosting providers — including token validation, framework auto-detection, file upload, environment variable pre-configuration, and deployment status polling.
 
-- **Page Format Pipeline** — from llm-scraper. preprocess(page,options) → {url,content,format}. Six formats: raw_html, markdown (Turndown), text (Mozilla Readability via CDN in-page), html (cleanup scrub, default), image (base64 screenshot), custom. Cost/fidelity dial.
-  [study](https://github.com/derrick-ships/distill-it/blob/main/features/content-preprocessing/study/page-format-pipeline--from-llm-scraper.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/content-preprocessing/build/page-format-pipeline--from-llm-scraper.md) · [origin repo](https://github.com/mishushakov/llm-scraper)
+- **One-Click Deployment** — from bolt-diy. Server routes for Vercel (v9 project API + v13 deploy API, 2-min poll) and Netlify (SHA-1 content-addressable hash protocol, 60s poll, 3-retry file upload). Framework detection from package.json deps + config files. Project IDs cached client-side for re-deploys.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/deployment/study/one-click-deployment--from-bolt-diy.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/deployment/build/one-click-deployment--from-bolt-diy.md) · [origin repo](https://github.com/stackblitz-labs/bolt.diy)
 
-- **HTML Cleanup** — from llm-scraper. In-browser DOM scrub via page.evaluate. Removes ~30 tag types (script/style/media/form/nav/head) and prefix-strips noise attributes (style/src/on*/aria-/data-). Mutates live DOM. href kept. Token-diet for the default html format.
-  [study](https://github.com/derrick-ships/distill-it/blob/main/features/content-preprocessing/study/html-cleanup--from-llm-scraper.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/content-preprocessing/build/html-cleanup--from-llm-scraper.md) · [origin repo](https://github.com/mishushakov/llm-scraper)
+- **Cloud Deploy** — from dyad. One-click Vercel deployment from a local Electron builder. Token validation, framework auto-detection (config files then package.json deps), project create via REST API, env var sync (Neon/Supabase) before first build, deployment status polling for live URL.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/deployment/study/cloud-deploy--from-dyad.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/deployment/build/cloud-deploy--from-dyad.md) · [origin repo](https://github.com/dyad-sh/dyad)
 
-### Credential Management (2)
-Patterns for managing multi-tier authentication in tools that aggregate from heterogeneous sources — keyless public APIs, browser-cookie sessions, and paid API keys — with graceful degradation when credentials are absent.
+### Graph Editing (2)
+The interactions that change the graph itself — drawing a new edge by dragging from one node's handle to another, and resizing a node by dragging its border.
 
-- **Cookie Credential Extraction** — from agent-reach. Multi-browser cookie harvest (rookiepy→browser_cookie3) driven by declarative per-platform specs (named cookies vs whole Cookie-header). Validate-before-save: require a logged-in marker (auth_token+ct0, xq_a_token) — presence≠valid. Atomic 0o600 write (O_CREAT+mode, no write-then-chmod race). shlex-quoted best-effort mirrors into upstream tools' credential files.
-  [study](https://github.com/derrick-ships/distill-it/blob/main/features/credential-management/study/cookie-credential-extraction--from-agent-reach.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/credential-management/build/cookie-credential-extraction--from-agent-reach.md) · [origin repo](https://github.com/Panniantong/Agent-Reach)
+- **Connection Handles** — from xyflow. Drag-to-connect with no d3: raw pointer listeners on document/shadow-host. Closest-handle within radius BUT DOM elementFromPoint wins; strict/loose validity + self-loop block + custom predicate; onConnect on valid drop.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/graph-editing/study/connection-handles--from-xyflow.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/graph-editing/build/connection-handles--from-xyflow.md) · [origin repo](https://github.com/xyflow/xyflow)
 
-- **Multi-Tier Credentials** — from last30days-skill. Tier 1 keyless (Reddit/HN/Polymarket/GitHub), Tier 2 browser cookies (X via Bird/Chrome/Safari/xurl, YouTube via yt-dlp/SSH), Tier 3 API keys (.env dual hierarchy, perms 600). Preflight startup checks.
-  [study](https://github.com/derrick-ships/distill-it/blob/main/features/credential-management/study/multi-tier-credentials--from-last30days-skill.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/credential-management/build/multi-tier-credentials--from-last30days-skill.md) · [origin repo](https://github.com/mvanhorn/last30days-skill)
+- **Node Resizer** — from xyflow. d3-drag on 8 control points. Corner-anchoring (top/left handles move x/y to pin the opposite edge), aspect captured at start, min/max + parent/child extents, children shifted inverse to origin move, emits only on real change.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/graph-editing/study/node-resizer--from-xyflow.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/graph-editing/build/node-resizer--from-xyflow.md) · [origin repo](https://github.com/xyflow/xyflow)
 
 ### Inbox Cleanup (2)
 unsubscribing from unwanted senders, mass-archiving low-value mail, and tracking per-sender status so the system stops re-bothering the user.
@@ -125,32 +566,56 @@ unsubscribing from unwanted senders, mass-archiving low-value mail, and tracking
 - **Bulk Unsubscriber** — from inbox-zero. Real server-side one-click unsubscribe. Parses RFC 2369 List-Unsubscribe (extracts https URL), RFC 8058 one-click POST (body 'List-Unsubscribe=One-Click') with GET fallback, SSRF-guarded fetch, <=5 redirects with 301/302/303->GET downgrade. Persists per-sender Newsletter status (APPROVED/UNSUBSCRIBED/AUTO_ARCHIVED).
   [study](https://github.com/derrick-ships/distill-it/blob/main/features/inbox-cleanup/study/bulk-unsubscriber--from-inbox-zero.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/inbox-cleanup/build/bulk-unsubscriber--from-inbox-zero.md) · [origin repo](https://github.com/elie222/inbox-zero)
 
-### Media Processing (2)
-Extracting text, metadata, and AI-generated descriptions from binary media files (images, audio) for use in text pipelines.
+### Macos Ui (2)
+Native macOS desktop-integration patterns — owning unusual window real estate, drawing above the system UI, and taking over system inputs/indicators — usually by reaching past public AppKit into private window-server, CoreGraphics, and event APIs.
 
-- **Image + LLM Captioning** — from markitdown. JPEG/PNG converter with two optional layers: exiftool subprocess for EXIF metadata, OpenAI-compatible vision API for image description. Both independently optional. Output: key-values + ## Description.
-  [study](https://github.com/derrick-ships/distill-it/blob/main/features/media-processing/study/image-llm-captioning--from-markitdown.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/media-processing/build/image-llm-captioning--from-markitdown.md) · [origin repo](https://github.com/microsoft/markitdown)
+- **Notch-Shaped Always-On-Top Window** — from boring-notch. Borderless non-activating NSPanel shaped to the MacBook notch, pinned above everything across Spaces & fullscreen via a private CGSSpace at Int32.max (flag=0x1 mandatory), plus a SkyLight-framework path for lock-screen visibility. Sizing from NSScreen.auxiliaryTopArea (width) + safeAreaInsets.top (height). Private CGS/SkyLight APIs via @_silgen_name and dlopen.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/macos-ui/study/notch-shaped-window--from-boring-notch.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/macos-ui/build/notch-shaped-window--from-boring-notch.md) · [origin repo](https://github.com/TheBoredTeam/boring.notch)
 
-- **Audio Transcription** — from markitdown. WAV/MP3/M4A/MP4 → Markdown via speech_recognition (Google Web Speech API) + exiftool metadata. Duration excluded (wrong from memory stream). Temp file needed for non-WAV formats.
-  [study](https://github.com/derrick-ships/distill-it/blob/main/features/media-processing/study/audio-transcription--from-markitdown.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/media-processing/build/audio-transcription--from-markitdown.md) · [origin repo](https://github.com/microsoft/markitdown)
+- **System HUD Replacement** — from boring-notch. CGEventTap at .cghidEventTap (.defaultTap) intercepting NX_SYSDEFINED(14) media keys; suppresses Apple's OSD by returning nil (consuming the event), then sets the value itself — volume via public CoreAudio (kAudioDevicePropertyVolumeScalar/Mute), brightness/backlight via private API in an XPC helper — and shows a custom auto-hiding notch HUD. Needs Accessibility permission.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/macos-ui/study/system-hud-replacement--from-boring-notch.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/macos-ui/build/system-hud-replacement--from-boring-notch.md) · [origin repo](https://github.com/TheBoredTeam/boring.notch)
 
-### Structured Extraction (2)
-Turning unstructured content (a webpage, a document, a blob of text) into typed, schema-validated data using an LLM as the extraction engine.
+### Realtime (2)
+real-time multiplayer collaboration — letting many clients edit shared state at once with instant local feedback, sane conflict resolution, and graceful recovery. The interesting engineering lives in the conflict model (CRDT vs.
 
-- **Schema-Driven Extraction** — from llm-scraper. Playwright page + Zod/JSON schema → typed object. Preprocess page, then AI SDK generateText with schema as `output` constraint, read result.output. Schema is both TS type and runtime constraint. One method: run(). No retry loop.
-  [study](https://github.com/derrick-ships/distill-it/blob/main/features/structured-extraction/study/schema-driven-extraction--from-llm-scraper.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/structured-extraction/build/schema-driven-extraction--from-llm-scraper.md) · [origin repo](https://github.com/mishushakov/llm-scraper)
+- **Multiplayer Sync** — from tldraw. Server-authoritative optimistic-rebase sync over WebSockets. Clients edit locally, stash speculative changes, push NetworkDiffs with a clientClock; server applies, assigns serverClock, returns commit/discard/rebase and broadcasts patches. Clients rebase (rewind→apply→replay). Presence synced-not-persisted; tombstone catch-up; per-session schema migration. Reference server = Cloudflare Durable Object.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/realtime/study/multiplayer-sync--from-tldraw.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/realtime/build/multiplayer-sync--from-tldraw.md) · [origin repo](https://github.com/tldraw/tldraw)
 
-- **Streaming Partial Objects** — from llm-scraper. stream() variant: AI SDK streamText with schema output → partialOutputStream async iterable. Each emission is a schema-conformant partial; last is complete. Mirror of run() but returns {stream,url}. For responsive UIs.
-  [study](https://github.com/derrick-ships/distill-it/blob/main/features/structured-extraction/study/streaming-partial-objects--from-llm-scraper.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/structured-extraction/build/streaming-partial-objects--from-llm-scraper.md) · [origin repo](https://github.com/mishushakov/llm-scraper)
+- **Debounced File Watcher** — from hazelnut. Watches dirs via the OS notify API, polls a channel non-blockingly, debounces by last-seen-time per path (cap+cleanup), acts only on Create/Modify, routes each file to its watched dir's allowed rule set via longest-prefix canonical matching, and runs a background initial scan of existing files. Skips symlinks + NotFound races.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/realtime/study/debounced-file-watcher--from-hazelnut.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/realtime/build/debounced-file-watcher--from-hazelnut.md) · [origin repo](https://github.com/ricardodantas/hazelnut)
 
-### Web Extraction (2)
-Turning web resources — HTML pages, YouTube videos, RSS feeds, Wikipedia articles — into clean Markdown by combining HTTP fetching, DOM parsing, and platform-specific API calls.
+### Realtime Collab (2)
+how concurrent edits sync, merge, and persist while staying consistent across clients — and, where it matters, private from the server.
 
-- **HTML Web Conversion** — from markitdown. BeautifulSoup + custom markdownify subclass. Strips scripts/styles, extracts body, RecursionError fallback to plaintext. convert_string() helper used by DOCX/PPTX/XLSX for table rendering. Wikipedia/RSS/Bing specializations.
-  [study](https://github.com/derrick-ships/distill-it/blob/main/features/web-extraction/study/html-web-conversion--from-markitdown.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/web-extraction/build/html-web-conversion--from-markitdown.md) · [origin repo](https://github.com/microsoft/markitdown)
+- **Scene Reconciliation** — from excalidraw. CRDT-free deterministic merge of local+remote element lists. Per-element last-write-wins: version is the logical clock, versionNonce the tiebreaker (lowest wins on equal version, using <= for a total relation). Active-editing (editing/resizing/new) guards override version math. Sorts + repairs fractional z-index last. Same fn runs client-side and inside the Firebase save transaction.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/realtime-collab/study/scene-reconciliation--from-excalidraw.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/realtime-collab/build/scene-reconciliation--from-excalidraw.md) · [origin repo](https://github.com/excalidraw/excalidraw)
 
-- **YouTube Extraction** — from markitdown. YouTube watch URL → Markdown. Meta tag scrape for views/keywords/duration. Recursive ytInitialData JSON search for description. youtube_transcript_api with 3-retry logic for transcript.
-  [study](https://github.com/derrick-ships/distill-it/blob/main/features/web-extraction/study/youtube-extraction--from-markitdown.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/web-extraction/build/youtube-extraction--from-markitdown.md) · [origin repo](https://github.com/microsoft/markitdown)
+- **E2E-Encrypted Collaboration** — from excalidraw. Zero-knowledge collab: AES-GCM 128 room key lives in the URL fragment (#room=ID,KEY) so the server never sees it; fresh 12-byte IV per message. socket.io relay only routes ciphertext. Delta broadcast via version Map + periodic full resync; reliable edits vs volatile presence. Encrypted Firebase persistence {sceneVersion,iv,ciphertext}, debounced, transactional reconcile on save.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/realtime-collab/study/e2e-encrypted-collaboration--from-excalidraw.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/realtime-collab/build/e2e-encrypted-collaboration--from-excalidraw.md) · [origin repo](https://github.com/excalidraw/excalidraw)
+
+### Runtime (2)
+In-browser and sandboxed code execution environments. Features in this domain cover running real server-side code (Node.js, Python, etc.
+
+- **WebContainer Runtime** — from bolt-diy. Boots a full Node.js runtime in the browser tab using @webcontainer/api. Writes files via wc.fs.writeFile(), runs npm/node via wc.spawn(), serves live HTTP previews from the container. Requires COEP+COOP headers. Singleton per tab via import.meta.hot.data.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/runtime/study/webcontainer-runtime--from-bolt-diy.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/runtime/build/webcontainer-runtime--from-bolt-diy.md) · [origin repo](https://github.com/stackblitz-labs/bolt.diy)
+
+- **Unified Runtimes + CLI Auto-Detection** — from multica. Local daemon auto-detects 11+ agent CLIs by PATH probe (env-overridable), registers each as a runtime, and wraps each behind a backend that normalizes its native stream (stream-json/app-server/acp/json) into uniform task events. Binary-name traps: cursor-agent, kiro-cli.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/runtime/study/unified-runtimes-cli-detection--from-multica.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/runtime/build/unified-runtimes-cli-detection--from-multica.md) · [origin repo](https://github.com/multica-ai/multica)
+
+### Streaming (2)
+Real-time stream output, transcoding, re-muxing, and multi-destination delivery.
+
+- **Stream Output & Transcoding** — from vlc. Declarative stream_out chain: '#transcode{vcodec=h264,vb=800,acodec=mp3}:http{mux=ts,dst=:8080/}'. Transcode module decodes→filters→re-encodes per track; duplicate fans to N outputs. VLM API manages named broadcasts. PCR-aware for MPEG-TS. Hardware encoders (NVENC/VideoToolbox) drop-in via module system.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/streaming/study/stream-output-transcoding--from-vlc.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/streaming/build/stream-output-transcoding--from-vlc.md) · [origin repo](https://code.videolan.org/videolan/vlc)
+
+- **Resumable Streaming Search** — from scira. Decouple durable generation (consumeStream + after(), buffered to Redis via ai-resumable-stream) from reconnectable delivery. GET resumes by replaying Redis chunks or returns the just-saved message within 15s; DELETE aborts via a shared AbortController. Graceful non-resumable fallback if no Redis.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/streaming/study/resumable-streaming-search--from-scira.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/streaming/build/resumable-streaming-search--from-scira.md) · [origin repo](https://github.com/zaidmukaddam/scira)
+
+### Activity Tracking (1)
+Logging every interaction with a record (calls, emails, meetings, notes, scheduled follow-ups) as a timeline, and triaging the pending ones by urgency so nothing falls through the cracks.
+
+- **Activity Tracking & Follow-up Buckets** — from auto-crm. Activities timeline; pending follow-up = scheduledAt set & completedAt null. Buckets incomplete items into overdue/today/upcoming/unscheduled via Unix-seconds day-window math. Backs web board + MCP crm_get_followups; feeds scoring recency.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/activity-tracking/study/followup-buckets--from-auto-crm.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/activity-tracking/build/followup-buckets--from-auto-crm.md) · [origin repo](https://github.com/Hainrixz/auto-crm)
 
 ### Adaptive Parsing (1)
 Features that make data extraction survive change — selectors, parsers, or extractors that don't break the moment a source (a website, a document format, an API response shape) is restructured.
@@ -158,29 +623,47 @@ Features that make data extraction survive change — selectors, parsers, or ext
 - **Adaptive Element Relocation** — from scrapling. Fingerprints an element (tag/text/attrs/siblings/path/parent) on first scrape, then re-finds it by fuzzy similarity scoring when the selector later breaks. Default 40% threshold. SQLite-backed, pluggable storage.
   [study](https://github.com/derrick-ships/distill-it/blob/main/features/adaptive-parsing/study/adaptive-element-relocation--from-scrapling.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/adaptive-parsing/build/adaptive-element-relocation--from-scrapling.md) · [origin repo](https://github.com/D4Vinci/Scrapling)
 
-### Agent Distribution (1)
-Patterns for shipping, installing, and maintaining software through an AI agent — where a versioned natural-language runbook is the installer, bounded by explicit safety guardrails, and the same mechanism handles updates and ongoing health.
+### Agent Guardrails (1)
+Mechanisms that constrain what an AI coding agent is allowed to produce — not by asking it nicely in a prompt, but by deterministic enforcement that runs outside the model and can block its output.
 
-- **Agent-Driven Install** — from agent-reach. The installer is a markdown runbook an LLM agent executes: thin 'For Humans' one-line trigger over an imperative 'For AI Agents' program. Hard boundaries (no sudo, confined to ~/.agent-reach/, never pollute the workspace), env-branched steps (PEP 668 / Homebrew / Windows Store-alias), explicit user checkpoints, 'selector/router, never a wrapper'. install.md / update.md / daily watch = one lifecycle mechanism.
-  [study](https://github.com/derrick-ships/distill-it/blob/main/features/agent-distribution/study/agent-driven-install--from-agent-reach.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/agent-distribution/build/agent-driven-install--from-agent-reach.md) · [origin repo](https://github.com/Panniantong/Agent-Reach)
+- **Deterministic Security Hooks** — from pagokit. Enforce rules on an AI agent's output via Claude Code hooks: PreToolUse/PostToolUse/Stop on Write|Edit|MultiEdit -> one dispatcher -> pluggable run(ctx)->finding|null checks. Exit 2 blocks the write; fail-open on crashes/timeouts. Comment/string stripping + test allowlist + pagokit-ignore bypass + audit log. Domain-agnostic guardrail engine.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/agent-guardrails/study/deterministic-security-hooks--from-pagokit.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/agent-guardrails/build/deterministic-security-hooks--from-pagokit.md) · [origin repo](https://github.com/Hainrixz/agente-pagokit)
 
-### Code Generation (1)
-Using an LLM to write runnable code as the deliverable, rather than to produce data directly. The model's output is a program — typically to be executed afterward — that does the actual work.
+### Analytics (1)
+Turning stored business data into at-a-glance situational awareness — KPI scoreboards and charts that answer "what's the shape of things right now?" without a query or an export.
 
-- **Scraper Code Generation** — from llm-scraper. generate() asks LLM to write a self-contained IIFE JS scraper for page+schema instead of extracting. Plain generateText (schema as context, not constraint). stripMarkdownBackticks cleans fences. Amortizes AI cost across runs.
-  [study](https://github.com/derrick-ships/distill-it/blob/main/features/code-generation/study/scraper-code-generation--from-llm-scraper.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/code-generation/build/scraper-code-generation--from-llm-scraper.md) · [origin repo](https://github.com/mishushakov/llm-scraper)
+- **CRM Dashboard KPIs & Analytics** — from auto-crm. KPI cards (contacts, active deals, pipeline value, conversion) + Recharts breakdowns. One server-side getStats() reused by web UI and MCP crm_get_stats so numbers never drift; won/lost via stage flags not names; shared color tokens.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/analytics/study/crm-dashboard-kpis--from-auto-crm.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/analytics/build/crm-dashboard-kpis--from-auto-crm.md) · [origin repo](https://github.com/Hainrixz/auto-crm)
 
-### Content Synthesis (1)
-Turning raw multi-source retrieval results into coherent, deduplicated, ranked summaries — clustering duplicate stories, selecting diverse representatives, and generating shareable output formats.
+### App Distribution (1)
+Getting a desktop app, and its future updates, onto users' machines: signing releases, publishing a feed, and letting the installed app update itself safely.
 
-- **Cross-Source Clustering** — from last30days-skill. Two-pass clustering: Pass 1 greedy text similarity (0.42/0.48 thresholds), Pass 2 entity overlap on small clusters. MMR picks up to 3 reps per cluster. Polymarket isolation, same-source enforcement.
-  [study](https://github.com/derrick-ships/distill-it/blob/main/features/content-synthesis/study/cross-source-clustering--from-last30days-skill.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/content-synthesis/build/cross-source-clustering--from-last30days-skill.md) · [origin repo](https://github.com/mvanhorn/last30days-skill)
+- **Sparkle EdDSA Auto-Update** — from open-caffeine. Self-updating macOS app via Sparkle with EdDSA-signed releases. SPUStandardUpdaterController + Info.plist (SUFeedURL to a raw-GitHub appcast.xml, SUPublicEDKey). A release script builds, zips with ditto, and runs generate_appcast to EdDSA-sign; the pushed appcast.xml is the feed and binaries live on GitHub Releases. Zero update server.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/app-distribution/study/sparkle-eddsa-autoupdate--from-open-caffeine.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/app-distribution/build/sparkle-eddsa-autoupdate--from-open-caffeine.md) · [origin repo](https://github.com/sapsaldog/open-caffeine)
+
+### App Management (1)
+Patterns for managing a portfolio of generated or user-created projects within a single builder tool — including project scaffolding, process lifecycle, collections/grouping, commit-keyed thumbnails, bulk operations, and multi-backend file search.
+
+- **Multi-App Library** — from dyad. Multi-project portfolio in a local builder: SQLite app+collection schema, template scaffold with git init, child-process lifecycle map, commit-keyed PNG thumbnails with LRU pruning, soft-deleted collections, ripgrep content search with byte-to-char offset conversion.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/app-management/study/multi-app-library--from-dyad.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/app-management/build/multi-app-library--from-dyad.md) · [origin repo](https://github.com/dyad-sh/dyad)
+
+### Code Intelligence (1)
+Tools and infrastructure that give AI agents (or humans) semantic, symbol-level understanding of a codebase — going beyond raw text search to understand what code means: what a symbol is, where it's defined, what references it, what its type hierarchy is, and how to edit it safely.
+
+- **Semantic Symbol Tools** — from serena. MCP-exposed LSP-backed toolkit for AI agents: find/navigate/edit code symbols by name-path (ClassName/method), replace bodies, insert before/after, rename across codebase, safe-delete, pull diagnostics — no line numbers needed, 40+ languages.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/code-intelligence/study/semantic-symbol-tools--from-serena.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/code-intelligence/build/semantic-symbol-tools--from-serena.md) · [origin repo](https://github.com/oraios/serena)
 
 ### Diagnostics (1)
 Patterns for answering "is this actually working right now?" — health probing of external dependencies, survivable aggregation into a human/agent-readable report, and turning failures into actionable, specific fixes.
 
 - **Channel Health Diagnostics** — from agent-reach. probe_command EXECUTES a side-effect-free command to classify missing/broken(stale venv shebang, exit 126/127)/timeout/ok — which() existence is not health. doctor aggregates per-channel (exceptions degrade to error, stale active_backend cleared), groups by tier, annotates the active backend only when >1 exists, and audits config.yaml permissions (chmod 600). Retries only transient failures.
   [study](https://github.com/derrick-ships/distill-it/blob/main/features/diagnostics/study/channel-health-diagnostics--from-agent-reach.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/diagnostics/build/channel-health-diagnostics--from-agent-reach.md) · [origin repo](https://github.com/Panniantong/Agent-Reach)
+
+### Durability (1)
+Making an in-memory database survive process crashes and restarts: write-ahead logging of every change, periodic full snapshots, and a recovery procedure that replays them to reconstruct state.
+
+- **WAL + Snapshot Durability** — from memgraph. Crash-safety for an in-memory store: append-only WAL of 40+ delta variants framed per-transaction with a deferred commit-flag patch for atomicity + per-txn CRC; sectioned snapshots with an offset table for seek-based load; recovery = newest snapshot then replay later WALs; versioned format (kVersion 36) with composable version-dependent decoders; retention keeps N snapshots + bridging WALs.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/durability/study/wal-snapshot-durability--from-memgraph.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/durability/build/wal-snapshot-durability--from-memgraph.md) · [origin repo](https://github.com/memgraph/memgraph)
 
 ### Email Platform (1)
 a single, provider-agnostic interface that wraps Gmail and Outlook/Microsoft Graph behind one set of methods, plus the OAuth token plumbing that keeps those clients alive.
@@ -194,29 +677,165 @@ Determining a file's true type from content, extension, MIME type hints, and ML-
 - **Magika File Detection** — from markitdown. Layered type detection: extension+MIME hints → mimetypes bidirectional enrichment → Magika ML content scan → charset_normalizer for text files. Returns ranked StreamInfo list.
   [study](https://github.com/derrick-ships/distill-it/blob/main/features/file-detection/study/magika-file-detection--from-markitdown.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/file-detection/build/magika-file-detection--from-markitdown.md) · [origin repo](https://github.com/microsoft/markitdown)
 
-### Plugin Architecture (1)
-Patterns for making a library extensible by third parties via Python entry points, without modifying the core package.
+### Git (1)
+Git operations that run inside the browser without a local git CLI.
 
-- **Plugin System** — from markitdown. importlib.metadata entry_points discovery under group 'markitdown.plugin'. Lazy load with fault isolation. register_converters(host, **kwargs) callback pattern. __plugin_interface_version__ for forward compat.
-  [study](https://github.com/derrick-ships/distill-it/blob/main/features/plugin-architecture/study/plugin-system--from-markitdown.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/plugin-architecture/build/plugin-system--from-markitdown.md) · [origin repo](https://github.com/microsoft/markitdown)
+- **Browser Git** — from bolt-diy. isomorphic-git clone in the browser routed through a server-side Remix CORS proxy that adds Access-Control-Allow-Origin: * to git server responses. Shallow clone (depth:1), binary file exclusion via TextDecoder fatal:true, LightningFS in-memory storage. detectProjectCommands() seeds the chat.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/git/study/browser-git--from-bolt-diy.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/git/build/browser-git--from-bolt-diy.md) · [origin repo](https://github.com/stackblitz-labs/bolt.diy)
+
+### Graph Rendering (1)
+The pure geometry that turns "two points with facing directions" into a drawable SVG path between nodes — bezier curves, orthogonal step routes with rounded corners, and straight lines — plus where to place the edge label.
+
+- **Edge Path Algorithms** — from xyflow. Pure dependency-free SVG path fns: getBezierPath (curvature*25*sqrt(-d) loop trick, t=0.5 label weights), getSmoothStepPath (orthogonal route, corner radius clamped to half-segment), getStraightPath. Returns [path,labelX,labelY,offsetX,offsetY].
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/graph-rendering/study/edge-path-algorithms--from-xyflow.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/graph-rendering/build/edge-path-algorithms--from-xyflow.md) · [origin repo](https://github.com/xyflow/xyflow)
+
+### Lead Ingestion (1)
+Getting leads/contacts into the system from the outside world — web forms, automation tools, batch files — with as little friction as possible and tolerant of messy, inconsistent payloads.
+
+- **Webhook Lead Ingestion** — from auto-crm. Public POST endpoint mapping multilingual/Typeform field aliases -> contact. Optional x-webhook-secret auth, name required, defaults webhook/cold/0. No dedup, no scoring on ingest (by design); echoes received keys on 400.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/lead-ingestion/study/webhook-lead-ingestion--from-auto-crm.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/lead-ingestion/build/webhook-lead-ingestion--from-auto-crm.md) · [origin repo](https://github.com/Hainrixz/auto-crm)
+
+### Lead Scoring (1)
+Turning a pile of leads/contacts into a ranked, triaged queue so a salesperson knows who to work first — via a transparent score and a coarse temperature tier.
+
+- **Rule-Based Lead Scoring** — from auto-crm. Deterministic 0-100 lead score: temperature base + contact completeness + capped engagement - recency decay + deal-value bonus, clamped; thresholds 70/40 -> hot/warm/cold. Offline, pure, doubles as the AI classifier's fallback.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/lead-scoring/study/rule-based-lead-scoring--from-auto-crm.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/lead-scoring/build/rule-based-lead-scoring--from-auto-crm.md) · [origin repo](https://github.com/Hainrixz/auto-crm)
+
+### Media Control (1)
+Patterns for reading and controlling media/now-playing playback across heterogeneous sources behind a single unified interface — the adapter pattern applied to music/media players with wildly different control surfaces.
+
+- **Multi-Provider Media Control** — from boring-notch. Unified now-playing across Apple Music/Spotify (AppleScript), YouTube Music (local HTTP+WebSocket@26538), and system NowPlaying (private MediaRemote read via a Perl DynaLoader subprocess, commands via MediaRemote.framework in-process). One MediaControllerProtocol publishing a normalized PlaybackState; MusicManager selects+hot-swaps the active adapter; capability flags + deprecation fallback.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/media-control/study/multi-provider-media-control--from-boring-notch.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/media-control/build/multi-provider-media-control--from-boring-notch.md) · [origin repo](https://github.com/TheBoredTeam/boring.notch)
+
+### Messaging (1)
+Patterns for connecting an app to chat/messaging channels (WhatsApp, SMS, Telegram, etc.) through a provider-agnostic abstraction, so the core logic never depends on which vendor delivers the messages.
+
+- **WhatsApp Provider Adapter Layer** — from whatsapp-agentkit. Adapter/strategy pattern for a messaging channel: abstract ProveedorWhatsApp + env-driven factory + Meta/Twilio adapters normalizing webhooks into a common MensajeEntrante. Core code never branches on provider; base carries a no-op validar_webhook only Meta overrides; lazy-imports the chosen adapter.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/messaging/study/whatsapp-provider-adapter--from-whatsapp-agentkit.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/messaging/build/whatsapp-provider-adapter--from-whatsapp-agentkit.md) · [origin repo](https://github.com/Hainrixz/whatsapp-agentkit)
+
+### Onboarding (1)
+the moments between "app just launched for the first time" and "user understands what this thing is and has granted it everything it needs to work.
+
+- **First-Launch Video Onboarding** — from clicky. First run is gated by a UserDefaults 'hasCompletedOnboarding' flag; the menu-bar panel primes and requests four macOS permissions (Microphone, Accessibility, Screen Recording, Screen Content) with native-prompt-then-Settings fallbacks, then on Start plays an aha-moment where a blue companion cursor types 'hey! i'm clicky' and a remote Mux HLS demo video (AVPlayer) fades in beside the live cursor. Replayable.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/onboarding/study/first-launch-video-onboarding--from-clicky.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/onboarding/build/first-launch-video-onboarding--from-clicky.md) · [origin repo](https://github.com/farzaa/clicky)
+
+### Permissions (1)
+How apps ask for, check, and recover user consent to sensitive capabilities (camera, location, contacts, health, notifications, …) — normalized into one uniform model regardless of the wildly inconsistent native APIs underneath.
+
+- **Unified Permission Abstraction** — from permissionskit. Abstract Permission base class normalizing 18 Apple-platform permissions onto a 4-state status model (authorized/denied/notDetermined/notSupported) + uniform request/openSettingPage; sub-flavors carried as associated values on a Kind enum.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/permissions/study/unified-permission-abstraction--from-permissionskit.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/permissions/build/unified-permission-abstraction--from-permissionskit.md) · [origin repo](https://github.com/sparrowcode/PermissionsKit)
+
+### Persistence (1)
+Client-side and server-side storage strategies for AI-powered applications: chat history, conversation snapshots, project state, and metadata.
+
+- **Chat Persistence (IndexedDB)** — from bolt-diy. IndexedDB 'boltHistory' v2 with chats store (id+urlId indexes, messages, metadata) and snapshots store (chatId key, file tree). Supports fork-at-message, duplicate, delete. Deployment IDs in metadata.netlifySiteId/vercelProjectId for re-deploys. Context summaries stored as chatSummary-typed messages.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/persistence/study/chat-persistence--from-bolt-diy.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/persistence/build/chat-persistence--from-bolt-diy.md) · [origin repo](https://github.com/stackblitz-labs/bolt.diy)
+
+### Power Management (1)
+Controlling the host operating system's power and sleep behaviour from an app: holding the machine (or just the display) awake, releasing cleanly, and tying that to timers, battery state, and user intent.
+
+- **Power-Assertion Wake Lock** — from open-caffeine. Prevent macOS idle sleep via IOKit power assertions behind a testable PowerAssertionAPI seam. displayAndSystem vs systemOnly assertion types; a timed session (Timer) auto-releases on expiry; a battery-threshold monitor (IOPS power sources) ends the session on low battery; deinit always releases.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/power-management/study/power-assertion-wake-lock--from-open-caffeine.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/power-management/build/power-assertion-wake-lock--from-open-caffeine.md) · [origin repo](https://github.com/sapsaldog/open-caffeine)
+
+### Privacy (1)
+Patterns for protecting user data at every layer — capture-time exclusion, pattern-based secret redaction before storage or AI processing, encryption at rest with OS-managed keys, and audit controls that give users visibility and control over what is retained.
+
+- **Pattern-Based Secret Redaction** — from asyar. multi-pattern regex pipeline that intercepts clipboard content, AI context, and user input before storage, redacting API keys, JWTs, credit cards, and secrets in place; AES-256-GCM encryption at rest with OS keychain key management
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/privacy/study/pattern-based-secret-redaction--from-asyar.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/privacy/build/pattern-based-secret-redaction--from-asyar.md) · [origin repo](https://github.com/Xoshbin/asyar)
+
+### Reactivity (1)
+fine-grained reactive state systems — the machinery that makes derived values and side-effects update automatically and surgically when their inputs change, without the developer wiring dependencies by hand.
+
+- **Signals Reactivity Engine** — from tldraw. Fine-grained reactivity (atom/computed/react) coordinated by a single global epoch counter. Dependencies auto-discovered by observing reads; staleness decided by epoch comparison, not value diffing. Signals carry diff-history so consumers can ask 'what changed since epoch N?'. Zero deps.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/reactivity/study/signals-reactivity-engine--from-tldraw.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/reactivity/build/signals-reactivity-engine--from-tldraw.md) · [origin repo](https://github.com/tldraw/tldraw)
+
+### Schema Migrations (1)
+evolving a persisted data format over time without breaking existing data — and, in the hardest cases, without breaking communication between clients on different versions.
+
+- **Schema & Migrations** — from tldraw. Versioned bidirectional migrations. Namespaced ids (sequenceId/version) grouped into sequences with record/store/storage scope; cross-sequence dependsOn resolved by topological sort. Compact SerializedSchema travels with snapshots + connect handshake; up to upgrade, down to serve older peers.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/schema-migrations/study/schema-migrations--from-tldraw.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/schema-migrations/build/schema-migrations--from-tldraw.md) · [origin repo](https://github.com/tldraw/tldraw)
+
+### Storage Engine (1)
+The in-process engine that holds a database's records in memory and governs how concurrent transactions read and mutate them — versioning, visibility, isolation, and garbage collection.
+
+- **In-Memory MVCC Storage Engine** — from memgraph. In-memory vertex/edge store: per-object delta chains walked backward by timestamp for 3 isolation levels; 56-byte trivially-destructible Delta; pointer-tagging packs type+flags free; non-sequential edge deltas relax MVCC for fast bulk import; lock-free reads, per-object lock only for chain mutation; commit = one atomic timestamp store.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/storage-engine/study/mvcc-inmemory-storage-engine--from-memgraph.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/storage-engine/build/mvcc-inmemory-storage-engine--from-memgraph.md) · [origin repo](https://github.com/memgraph/memgraph)
+
+### Testing Discipline (1)
+structuring code so the logic is testable, and enforcing a coverage bar automatically so it can't rot.
+
+- **Coverage-Gated Testable Core** — from open-caffeine. 100% line-coverage gate over a curated logic core. Decision logic is extracted out of UI/system shells into pure types + protocol seams; thin OS-touching impls go in a justified, self-policing EXCLUDE list; a pre-push hook runs xccov and fails the push if any non-excluded file is below 100%. New files are not exempt by default.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/testing-discipline/study/coverage-gated-testable-core--from-open-caffeine.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/testing-discipline/build/coverage-gated-testable-core--from-open-caffeine.md) · [origin repo](https://github.com/sapsaldog/open-caffeine)
+
+### Transcription (1)
+Turning spoken audio in video/audio media into clean, timestamped text — preferring free existing captions, falling back to paid speech-to-text APIs only when needed.
+
+- **Captions-First Transcription Cascade** — from claude-video. Cost-ordered transcript: parse yt-dlp WebVTT captions (deduping YouTube rolling duplicates) first/free; else extract tiny 16kHz mono mp3 and POST to Groq whisper-large-v3 / OpenAI whisper-1 via hand-rolled stdlib multipart (no SDK) with retry/backoff. Non-default UA dodges Groq's Cloudflare WAF. All sources normalize to {start,end,text}.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/transcription/study/captions-first-transcription-cascade--from-claude-video.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/transcription/build/captions-first-transcription-cascade--from-claude-video.md) · [origin repo](https://github.com/bradautomates/claude-video)
+
+### Vector Search (1)
+Approximate-nearest-neighbour (ANN) similarity search over high-dimensional embeddings, embedded inside a primary datastore so semantic retrieval lives next to the records it indexes. The retrieval half of GraphRAG and AI-memory systems.
+
+- **USearch Vector Index** — from memgraph. Embedded HNSW ANN index (USearch) over node/edge embeddings, key = vertex pointer; per-index metric/dimension/scalar-kind/capacity; SINGLE/WILDCARD/ANY_OF/ALL_OF membership filter; copy-on-write index registry for snapshot-stable reads; READ_UNCOMMITTED safe under UNIQUE host access; undo-able OOM-protected drop; serialized into snapshots + WAL create/drop recovery.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/vector-search/study/usearch-vector-index--from-memgraph.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/vector-search/build/usearch-vector-index--from-memgraph.md) · [origin repo](https://github.com/memgraph/memgraph)
+
+### Web Cloning (1)
+Reverse-engineering a live website — its visual design, interactions, assets, and layout — into a clean, production-grade codebase by combining browser-based reconnaissance, AI-generated component specifications, and parallel multi-agent code construction.
+
+- **Website Cloning Pipeline** — from ai-website-cloner-template. 5-phase AI pipeline (recon → foundation → component specs → parallel build → assemble+QA) that converts a target URL into a deployable Next.js 16/React 19 app. Uses getComputedStyle() for pixel-accurate design extraction, git worktrees for parallel agent builds, and spec-driven component construction.
+  [study](https://github.com/derrick-ships/distill-it/blob/main/features/web-cloning/study/website-cloning-pipeline--from-ai-website-cloner-template.md) · [build spec](https://github.com/derrick-ships/distill-it/blob/main/features/web-cloning/build/website-cloning-pipeline--from-ai-website-cloner-template.md) · [origin repo](https://github.com/JCodesMore/ai-website-cloner-template)
 
 ## Repositories (by contribution)
 - markitdown: 11 patterns
+- firecrawl: 10 patterns
+- auto-crm: 9 patterns
+- clicky: 9 patterns
+- open-design: 8 patterns
+- dyad: 8 patterns
+- bolt-diy: 8 patterns
+- xyflow: 7 patterns
 - last30days-skill: 6 patterns
 - llm-scraper: 6 patterns
+- scrapegraph-ai: 6 patterns
+- openpaper: 6 patterns
+- scira: 6 patterns
 - inbox-zero: 5 patterns
+- carousel-generator: 5 patterns
+- airbyte: 5 patterns
+- ai-website-cloner-template: 5 patterns
+- asyar: 5 patterns
 - agent-reach: 4 patterns
+- style-dictionary: 4 patterns
+- excalidraw: 4 patterns
+- tldraw: 4 patterns
+- metabase: 4 patterns
+- vlc: 4 patterns
+- multica: 4 patterns
 - supertonic: 3 patterns
+- pagokit: 3 patterns
+- whatsapp-agentkit: 3 patterns
+- penpot: 3 patterns
+- boring-notch: 3 patterns
+- hazelnut: 3 patterns
+- permissionskit: 3 patterns
+- claude-video: 3 patterns
+- memgraph: 3 patterns
+- open-caffeine: 3 patterns
+- serena: 2 patterns
 - scrapling: 1 pattern
+- open-webui: 1 pattern
 
 ## Relationship types
-- depends-on (34): one pattern needs another to work
-- same-repo (26): shipped in the same project
-- same-domain (11): solves a related problem
-- similar-pattern (9): an independent take on the same idea
-- alternative-to (4): a competing approach
+- depends-on (162): one pattern needs another to work
+- same-repo (207): shipped in the same project
+- same-domain (55): solves a related problem
+- similar-pattern (81): an independent take on the same idea
+- alternative-to (22): a competing approach
 
 ## Convergent solutions (same problem, different repos, worth comparing)
+- Deterministic Security Hooks ~ Agent-Driven Install (pagokit / agent-reach)
+- Secure Payment Webhook & Idempotency ~ BYOK Proxy (pagokit / open-design)
+- Payment Provider Advisor ~ Converter Pipeline (pagokit / markitdown)
 - PDF Conversion vs Azure Doc Intelligence (markitdown / markitdown)
 - Image + LLM Captioning vs Azure Doc Intelligence (markitdown / markitdown)
 - Scraper Code Generation vs Schema-Driven Extraction (llm-scraper / llm-scraper)
@@ -230,3 +849,90 @@ Patterns for making a library extensible by third parties via Python entry point
 - Ordered Backend Routing ~ Email Provider Abstraction (agent-reach / inbox-zero)
 - Channel Health Diagnostics ~ Multi-Tier Credentials (agent-reach / last30days-skill)
 - Agent-Driven Install ~ Agent Output Contract (agent-reach / last30days-skill)
+- Node Resizer ~ Node Dragging (xyflow / xyflow)
+- Register / Extensibility API vs Plugin System (style-dictionary / markitdown)
+- Register / Extensibility API ~ Plugin Ecosystem (style-dictionary / open-design)
+- E2E-Encrypted Collaboration ~ Local-First Architecture (excalidraw / open-design)
+- WhatsApp Provider Adapter Layer ~ Ordered Backend Routing (whatsapp-agentkit / agent-reach)
+- AI Lead Classification (Claude) vs Provider-Agnostic LLM Layer (auto-crm / llm-scraper)
+- Kanban Pipeline (drag-and-drop) vs Node Dragging (auto-crm / xyflow)
+- Self-Customizing CRM via Claude Code Commands ~ Agent-Driven Install (auto-crm / agent-reach)
+- BYOK + Rate-Limited AI Action vs BYOK Proxy (carousel-generator / open-design)
+- OKLCH Theme Palettes ~ Design Systems Library (carousel-generator / open-design)
+- BYOK + Rate-Limited AI Action ~ Multi-Tier Credentials (carousel-generator / last30days-skill)
+- Map-Reduce Answer Generation vs Schema-Driven Extraction (scrapegraph-ai / llm-scraper)
+- Provider-Agnostic Model Layer vs Provider-Agnostic LLM Layer (scrapegraph-ai / llm-scraper)
+- Multi-Source Fetch Node ~ Page Format Pipeline (scrapegraph-ai / llm-scraper)
+- Multi-Source Fetch Node ~ HTML Web Conversion (scrapegraph-ai / markitdown)
+- SmartScraper Pipeline vs Adaptive Element Relocation (scrapegraph-ai / scrapling)
+- Search-Driven Scraping ~ Multi-Source Research Engine (scrapegraph-ai / last30days-skill)
+- Map-Reduce Answer Generation ~ Streaming Partial Objects (scrapegraph-ai / llm-scraper)
+- Change-Based Mutation Model ~ Scene Reconciliation (penpot / excalidraw)
+- Change-Based Mutation Model ~ Multiplayer Sync (penpot / tldraw)
+- Change-Based Mutation Model ~ Schema & Migrations (penpot / tldraw)
+- Native Design Tokens ~ Transforms & Transform Groups (penpot / style-dictionary)
+- Native Design Tokens vs OKLCH Theme Palettes (penpot / carousel-generator)
+- WASM/Skia Render Engine vs DOM-to-PDF Export (penpot / carousel-generator)
+- Notch-Shaped Always-On-Top Window ~ Local-First Architecture (boring-notch / open-design)
+- Multi-Provider Media Control ~ Email Provider Abstraction (boring-notch / inbox-zero)
+- Multi-Provider Media Control ~ WhatsApp Provider Adapter Layer (boring-notch / whatsapp-agentkit)
+- Multi-Provider Media Control ~ Ordered Backend Routing (boring-notch / agent-reach)
+- Chat-Completion Middleware ~ WhatsApp Provider Adapter Layer (open-webui / whatsapp-agentkit)
+- Audio Overview (TTS) ~ Citation-Grounded Chat (openpaper / openpaper)
+- Audio Overview (TTS) vs ONNX TTS Pipeline (openpaper / supertonic)
+- Audio Overview (TTS) vs ElevenLabs Streaming TTS (openpaper / clicky)
+- Web Search (+ optional scrape) ~ SmartScraper Pipeline (firecrawl / scrapegraph-ai)
+- Scrape Engine + Fallback Pipeline ~ Multi-Source Fetch Node (firecrawl / scrapegraph-ai)
+- Scrape Engine + Fallback Pipeline ~ Page Format Pipeline (firecrawl / llm-scraper)
+- Web Search (+ optional scrape) vs Corpus & Academic Search (firecrawl / openpaper)
+- Agentic Browser Actions ~ Deep Research Loop (firecrawl / firecrawl)
+- Deep Research Loop ~ Agentic Browser Actions (firecrawl / firecrawl)
+- Generate llms.txt ~ LLM Extract (map-reduce) (firecrawl / firecrawl)
+- Keyless & x402 Paid Access ~ Multi-Tier Credentials (firecrawl / last30days-skill)
+- Deep Research Loop ~ Multi-Source Research Engine (firecrawl / last30days-skill)
+- Declarative HTTP Stream Stack vs Scrape Engine + Fallback Pipeline (airbyte / firecrawl)
+- Declarative HTTP Stream Stack ~ Multi-Source Fetch Node (airbyte / scrapegraph-ai)
+- Multimethod Driver Abstraction vs Declarative (Low-Code) CDK (metabase / airbyte)
+- MBQL — Metabase Query AST ~ Airbyte Protocol (metabase / airbyte)
+- Debounced File Watcher ~ Queue-Backed Crawl (hazelnut / firecrawl)
+- File Rules Engine ~ Query Processor Middleware Pipeline (hazelnut / metabase)
+- Multi-Platform Agent Sync ~ Skills System (ai-website-cloner-template / open-design)
+- Multi-Platform Agent Sync ~ Plugin Ecosystem (ai-website-cloner-template / open-design)
+- Parallel Worktree Build vs Agentic Loop (ai-website-cloner-template / open-design)
+- Browser Design Token Extraction ~ SmartScraper Pipeline (ai-website-cloner-template / scrapegraph-ai)
+- Component Specification Generation ~ Interview-Driven App Scaffolding (ai-website-cloner-template / whatsapp-agentkit)
+- Website Cloning Pipeline ~ Design Artifact Generation (ai-website-cloner-template / open-design)
+- MCP Sidecar Auto-Detection ~ MCP CRM Server (asyar / auto-crm)
+- Sandboxed Extension System ~ Plugin System (asyar / markitdown)
+- Silent AI Text Transform ~ Agentic Loop (asyar / open-design)
+- Capability-Based Module System ~ Plugin System (vlc / markitdown)
+- Capability-Based Module System ~ Register / Extensibility API (vlc / style-dictionary)
+- Unified Permission Abstraction ~ Pattern-Based Secret Redaction (permissionskit / asyar)
+- BYOK Settings ~ Multi-Tier Credentials (dyad / last30days-skill)
+- Multi-Provider LLM System ~ Provider-Agnostic LLM Layer (bolt-diy / llm-scraper)
+- Artifact Code Generation ~ Scraper Code Generation (bolt-diy / llm-scraper)
+- MCP Tool Integration ~ Agent Output Contract (bolt-diy / last30days-skill)
+- Agentic Research Planning ~ Deep Research Loop (scira / firecrawl)
+- Agentic Research Planning ~ Multi-Source Research Engine (scira / last30days-skill)
+- Grounded Retrieval + Inline Citations ~ Map-Reduce Answer Generation (scira / scrapegraph-ai)
+- Grounded Retrieval + Inline Citations ~ Citation-Grounded Chat (scira / openpaper)
+- Multi-Provider Model Gateway vs Multi-Provider LLM System (scira / bolt-diy)
+- Multi-Provider Model Gateway ~ Provider-Agnostic Model Layer (scira / scrapegraph-ai)
+- Tool & Search-Mode Registry ~ MCP Tool Integration (scira / bolt-diy)
+- Scheduled Monitoring Agents (Lookouts) ~ Queue-Backed Crawl (scira / firecrawl)
+- Scheduled Monitoring Agents (Lookouts) ~ Incremental Sync & State (scira / airbyte)
+- Tool & Search-Mode Registry ~ AI Agent with Tool Calling (scira / asyar)
+- Autopilot — Scheduled Agent Work vs Scheduled Monitoring Agents (Lookouts) (multica / scira)
+- Autopilot — Scheduled Agent Work ~ Queue-Backed Crawl (multica / firecrawl)
+- Autopilot — Scheduled Agent Work ~ Incremental Sync & State (multica / airbyte)
+- Unified Runtimes + CLI Auto-Detection ~ MCP Sidecar Auto-Detection (multica / asyar)
+- Unified Runtimes + CLI Auto-Detection ~ Multi-Provider Model Gateway (multica / scira)
+- Agents as Teammates ~ Per-Contact Conversation Memory (multica / whatsapp-agentkit)
+- Agents as Teammates ~ Agent Output Contract (multica / last30days-skill)
+- Autonomous Execution Lifecycle + WS Streaming ~ Resumable Streaming Search (multica / scira)
+- Autonomous Execution Lifecycle + WS Streaming ~ Stream Output & Transcoding (multica / vlc)
+- Captions-First Transcription Cascade ~ Audio Transcription (claude-video / markitdown)
+- Captions-First Transcription Cascade vs Push-to-Talk Streaming Transcription (claude-video / clicky)
+- Power-Assertion Wake Lock ~ Provider-Agnostic LLM Layer (open-caffeine / llm-scraper)
+- Coverage-Gated Testable Core ~ Email Provider Abstraction (open-caffeine / inbox-zero)
+- Coverage-Gated Testable Core ~ Provider-Agnostic LLM Layer (open-caffeine / llm-scraper)
