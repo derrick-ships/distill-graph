@@ -1,8 +1,8 @@
 /* Distill ▲ Graph — service worker (offline-capable app shell) */
-const CACHE = "distill-graph-v2";
+const CACHE = "distill-graph-v3";
 const ASSETS = [
   "./", "index.html", "styles.css", "app.js",
-  "graph.json", "domains.json", "vendor/d3.v7.min.js",
+  "graph.json", "domains.json", "stats.html", "stats.css", "stats.js", "vendor/d3.v7.min.js",
   "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png"
 ];
 self.addEventListener("install", (e) => {

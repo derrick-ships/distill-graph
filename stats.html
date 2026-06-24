@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#05060a" />
+<meta name="description" content="The distill-it knowledge graph in numbers: which patterns are central, which are foundational, where coverage is thin, and where different repos solved the same problem." />
+<title>Stats · Distill ▲ Graph</title>
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="stats.css" />
+</head>
+<body class="report-page">
+<div id="grain" aria-hidden="true"></div>
+
+<header class="report-nav">
+  <a class="brand" href="./" aria-label="Distill Graph home">
+    <svg class="brand-mark" viewBox="0 0 48 44" width="19" height="17" aria-hidden="true"><path d="M24 3 L45 41 L3 41 Z" fill="none" stroke="currentColor" stroke-width="2.2" /></svg>
+    <span class="brand-word">DISTILL <em>GRAPH</em></span>
+  </a>
+  <nav class="report-toc" aria-label="Sections">
+    <a href="#s-backbone">Backbone</a>
+    <a href="#s-foundations">Foundations</a>
+    <a href="#s-coverage">Coverage</a>
+    <a href="#s-sources">Sources</a>
+    <a href="#s-relationships">Links</a>
+    <a href="#s-convergent">Compare</a>
+  </nav>
+  <a class="back-pill" href="./">Open map <span class="ic" aria-hidden="true">↗</span></a>
+</header>
+
+<main class="report">
+  <section class="report-hero">
+    <span class="eyebrow-pill"><span class="dot"></span>Repository intelligence · Analysis</span>
+    <h1>The map, in numbers</h1>
+    <p class="lede">Thirty-six engineering patterns, distilled from seven repositories. This page reads the shape of that graph so you can decide what to study first, what to reuse, and where to dig next. <b>Five patterns carry most of the structure; eight domains hold only one.</b></p>
+    <div class="stat-strip" id="stat-strip"></div>
+  </section>
+
+  <section id="s-backbone" class="reveal">
+    <p class="section-eyebrow">The backbone</p>
+    <h2 id="h-backbone">Five patterns hold the whole map together</h2>
+    <p class="prose">Connection count is influence: a pattern wired to many others shapes how the rest fit. These are the hubs. <b>Read them first</b> and the surrounding patterns fall into place faster.</p>
+    <div class="bars" id="bars-backbone"></div>
+  </section>
+
+  <section id="s-foundations" class="reveal">
+    <p class="section-eyebrow">The foundations</p>
+    <h2>The highest-leverage code to reuse</h2>
+    <p class="prose">Counting only "depends-on" arrows pointing <i>in</i> shows what other patterns are built on top of. These are the load-bearing abstractions. <b>Build or borrow these first</b> and everything downstream gets easier.</p>
+    <div class="bars" id="bars-foundations"></div>
+  </section>
+
+  <section id="s-coverage" class="reveal">
+    <p class="section-eyebrow">Coverage</p>
+    <h2>Deep in a few domains, thin in many</h2>
+    <p class="prose">How many patterns sit in each domain. <b id="coverage-line"></b> The single-pattern domains are not weaknesses, they are the obvious places to distill more.</p>
+    <div class="bars" id="bars-coverage"></div>
+  </section>
+
+  <section id="s-sources" class="reveal">
+    <p class="section-eyebrow">Sources</p>
+    <h2>One repository supplied a third of everything</h2>
+    <p class="prose">Where the patterns came from. <b id="sources-line"></b> Repos near the bottom are barely mined, more value is likely still in them.</p>
+    <div class="bars" id="bars-sources"></div>
+  </section>
+
+  <section id="s-relationships" class="reveal">
+    <p class="section-eyebrow">How it connects</p>
+    <h2>The graph is mostly "x builds on y"</h2>
+    <p class="prose">Every connection has a type. The mix tells you what kind of knowledge this is: a web of dependencies and shared lineage more than a list of alternatives.</p>
+    <div class="segbar" id="seg-relationships"></div>
+    <div class="seg-legend" id="seg-legend"></div>
+  </section>
+
+  <section id="s-convergent" class="reveal">
+    <p class="section-eyebrow">Compare and decide</p>
+    <h2 id="h-convergent">Where different projects solved the same problem</h2>
+    <p class="prose">These pairs are independent answers to the same question, linked as "similar pattern" or "alternative to". When you hit that problem yourself, <b>these are the approaches to weigh against each other.</b></p>
+    <div class="pairs" id="pairs-convergent"></div>
+  </section>
+
+  <section id="s-decisions" class="reveal">
+    <p class="section-eyebrow">Where to start</p>
+    <h2>Using this to make a call</h2>
+    <div class="guide">
+      <div class="guide-item"><span class="num">1</span><div><h3>Orient with the backbone</h3><p>Start from the five hub patterns above. Understanding them gives you the most context per pattern read.</p></div></div>
+      <div class="guide-item"><span class="num">2</span><div><h3>Reuse the foundations</h3><p>If you are building, lift the most depended-upon abstractions first. They unlock the patterns stacked on them.</p></div></div>
+      <div class="guide-item"><span class="num">3</span><div><h3>Compare before you commit</h3><p>Facing a problem with two answers in the convergent list? Open both in the <a href="./">map</a> and read their build specs side by side.</p></div></div>
+      <div class="guide-item"><span class="num">4</span><div><h3>Expand the thin domains</h3><p>The single-pattern domains are the clearest gaps. Point distill-it at a new repo in one of them to deepen coverage.</p></div></div>
+    </div>
+    <div class="report-foot">
+      <span>Distill ▲ Graph · figures computed live from graph.json</span>
+      <span><a href="./">Open the map</a> · <a href="https://github.com/derrick-ships/distill-it" target="_blank" rel="noopener">distill-it</a></span>
+    </div>
+  </section>
+</main>
+
+<script src="stats.js"></script>
+</body>
+</html>
