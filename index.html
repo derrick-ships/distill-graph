@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#000000" />
+<meta name="description" content="A star chart of 33 engineering patterns distilled from 6 open-source repositories. Tap a star to read the study doc and build spec." />
+
+<title>Distill ▲ Graph</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Distill" />
+
+<!-- Open Graph -->
+<meta property="og:title" content="Distill ▲ Graph" />
+<meta property="og:description" content="A star chart of 33 engineering patterns distilled from 6 repositories." />
+<meta property="og:type" content="website" />
+
+<!-- Type: D-DIN (brand) with Oswald (condensed) + Inter (body) as the resilient substitutes named in the brief -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="preconnect" href="https://fonts.cdnfonts.com" />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.cdnfonts.com/css/d-din" rel="stylesheet" />
+
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- ============ LOADER : the constellation forms ============ -->
+<div id="loader" aria-hidden="true">
+  <div class="loader-inner">
+    <svg class="mark" viewBox="0 0 48 44" width="40" height="37" aria-hidden="true">
+      <path d="M24 2 L46 42 L2 42 Z" fill="none" stroke="#ffffff" stroke-width="1.5" />
+    </svg>
+    <div class="loader-word">DISTILL <i>▲</i> GRAPH</div>
+    <div class="loader-sub">MAPPING 33 PATTERNS · 6 REPOSITORIES</div>
+    <div class="loader-track"><span id="loader-bar"></span></div>
+  </div>
+</div>
+
+<!-- ============ TOP NAV (overlay) ============ -->
+<header id="nav">
+  <a class="brand" href="./" aria-label="Distill Graph — home">
+    <svg class="brand-mark" viewBox="0 0 48 44" width="20" height="18" aria-hidden="true">
+      <path d="M24 3 L45 41 L3 41 Z" fill="none" stroke="currentColor" stroke-width="2" />
+    </svg>
+    <span class="brand-word">DISTILL <em>GRAPH</em></span>
+  </a>
+
+  <div class="nav-actions">
+    <button class="nav-btn" id="search-btn" aria-label="Search patterns">SEARCH</button>
+    <button class="nav-btn" id="view-btn" aria-pressed="false">INDEX</button>
+  </div>
+
+  <div id="search-bar" hidden>
+    <input id="search-input" type="search" placeholder="SEARCH PATTERNS, DOMAINS, REPOS…" autocomplete="off" spellcheck="false" aria-label="Search patterns" />
+    <button class="nav-btn" id="search-close" aria-label="Close search">CLOSE</button>
+  </div>
+</header>
+
+<!-- ============ MAP VIEW : the sky ============ -->
+<main id="map-view">
+  <svg id="sky" aria-label="Knowledge graph star map"></svg>
+
+  <!-- constellation filter rail -->
+  <nav id="domain-rail" aria-label="Filter by domain"></nav>
+
+  <p id="hint">DRAG TO PAN · PINCH TO ZOOM · TAP A STAR</p>
+
+  <button id="legend-btn" aria-label="Show edge legend">i</button>
+  <div id="legend" hidden>
+    <h4>EDGES</h4>
+    <div class="leg-row"><span class="leg-line solid bright"></span>DEPENDS&nbsp;ON</div>
+    <div class="leg-row"><span class="leg-line solid"></span>SAME&nbsp;REPO</div>
+    <div class="leg-row"><span class="leg-line dotted"></span>SAME&nbsp;DOMAIN</div>
+    <div class="leg-row"><span class="leg-line dashed"></span>ALTERNATIVE&nbsp;TO</div>
+    <div class="leg-row"><span class="leg-line faint-dash"></span>SIMILAR&nbsp;PATTERN</div>
+    <h4 style="margin-top:14px">SIZE</h4>
+    <div class="leg-row"><span class="leg-star"></span>BRIGHTER = MORE CONNECTED</div>
+  </div>
+</main>
+
+<!-- ============ INDEX VIEW : the manifest ============ -->
+<section id="index-view" hidden>
+  <div class="index-head">
+    <p class="eyebrow">REPOSITORY INTELLIGENCE</p>
+    <h1>INDEX</h1>
+    <p class="index-stats" id="index-stats"></p>
+  </div>
+  <div id="index-list"></div>
+  <footer class="site-footer">
+    <span>DISTILL ▲ GRAPH</span>
+    <span>BUILT WITH CLAUDE CODE · DATA FROM <a href="https://github.com/derrick-ships/distill-it" target="_blank" rel="noopener">DISTILL-IT</a></span>
+  </footer>
+</section>
+
+<!-- ============ DETAIL SHEET ============ -->
+<div id="scrim" hidden></div>
+<aside id="sheet" hidden aria-label="Pattern detail" role="dialog" aria-modal="true">
+  <button class="sheet-grip" id="sheet-grip" aria-label="Close detail"></button>
+  <div class="sheet-body" id="sheet-body"></div>
+</aside>
+
+<script src="vendor/d3.v7.min.js"></script>
+<script src="app.js"></script>
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch(() => {});
+    });
+  }
+</script>
+</body>
+</html>

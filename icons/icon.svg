@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" fill="#000000"/>
+  <!-- distill delta -->
+  <path d="M256 150 L382 380 L130 380 Z" fill="none" stroke="#ffffff" stroke-width="18" stroke-linejoin="round"/>
+  <!-- stars at the vertices -->
+  <circle cx="256" cy="150" r="16" fill="#ffffff"/>
+  <circle cx="382" cy="380" r="10" fill="#ffffff"/>
+  <circle cx="130" cy="380" r="10" fill="#ffffff"/>
+  <!-- a faint inner connection -->
+  <circle cx="256" cy="303" r="6" fill="#ffffff" opacity="0.85"/>
+  <line x1="256" y1="150" x2="256" y2="303" stroke="#ffffff" stroke-width="6" opacity="0.5"/>
+</svg>
