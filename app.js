@@ -80,7 +80,7 @@
     repos.forEach((r, i) => (repoColor[r] = SPECTRAL[i % SPECTRAL.length]));
 
     labelRest = new Set(
-      nodes.slice().sort((a, b) => degree[b.id] - degree[a.id]).slice(0, 5).map((n) => n.id)
+      nodes.slice().sort((a, b) => degree[b.id] - degree[a.id]).slice(0, 3).map((n) => n.id)
     );
 
     const sub = $(".loader-sub");
@@ -131,12 +131,12 @@
     const anchors = domainAnchors();
     sim = d3.forceSimulation(nodes)
       .force("link", d3.forceLink(edges).id((d) => d.id)
-        .distance((e) => (e.type === "same-repo" ? 42 : 66))
+        .distance((e) => (e.type === "same-repo" ? 56 : 96))
         .strength((e) => linkStrength(e.type)))
-      .force("charge", d3.forceManyBody().strength(-100))
+      .force("charge", d3.forceManyBody().strength(-185))
       .force("x", d3.forceX((d) => anchors[d.domain].x).strength(0.16))
       .force("y", d3.forceY((d) => anchors[d.domain].y).strength(0.16))
-      .force("collide", d3.forceCollide().radius((d) => radius(d) + 9))
+      .force("collide", d3.forceCollide().radius((d) => radius(d) + 16))
       .alpha(1).alphaDecay(0.03);
 
     linkSel = gLink.selectAll("line").data(edges).join("line").attr("class", (e) => "edge " + e.type);
@@ -231,10 +231,10 @@
   }
 
   function refreshLabels() {
-    const zoomedIn = currentK > 1.3;
+    const zoomedIn = currentK > 2.4;
     nodeSel.classed("show-label", (d) =>
       labelRest.has(d.id) || zoomedIn || (selected && (d.id === selected.id || neighbors.get(selected.id).has(d.id))));
-    const showConst = currentK < 0.98 && !selected && !activeDomain;
+    const showConst = currentK < 1.7 && !selected && !activeDomain;
     constSel
       .classed("active", (d) => d === activeDomain)
       .classed("shown", (d) => showConst)

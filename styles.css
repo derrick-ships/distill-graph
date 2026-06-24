@@ -426,3 +426,24 @@ html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; 
 }
 #search-empty[hidden] { display: none; }
 #search-empty b { color: var(--text-1); font-weight: 500; }
+
+/* ===================== REDESIGN: calm resting state ===================== */
+
+/* whisper-faint web at rest; dots and negative space carry the composition */
+.edge { stroke-opacity: 0.06; }
+.edge.depends-on { stroke-opacity: 0.11; }
+.edge.same-repo { stroke-opacity: 0.05; }
+.edge.same-domain { stroke-opacity: 0.08; }
+.edge.alternative-to { stroke-opacity: 0.1; }
+.edge.similar-pattern { stroke-opacity: 0.05; }
+
+/* constellation names are the primary orientation at rest */
+.constellation { font-size: 12.5px; letter-spacing: 0.26em; fill: var(--text-2); font-weight: 600; }
+.constellation.shown { opacity: 0.5; }
+.constellation.active { opacity: 1; fill: var(--text-1); }
+
+/* film grain breaks the digital flatness (static, very subtle) */
+#grain {
+  position: fixed; inset: 0; z-index: 6; pointer-events: none; opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
